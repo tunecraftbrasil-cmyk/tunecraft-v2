@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acesso | TuneCraft</title>
+
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0e27; color: white;
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; margin: 0;
+      padding: 20px;
+    }
+
+    /* Country Phone Selector */
+  .phone-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .country-select {
+    padding: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    color: #1e293b;
+    cursor: pointer;
+    min-width: 120px;
+    transition: 0.2s;
+    font-weight: 600;
+  }
+
+  .country-select:focus {
+    outline: none;
+    border-color: #00d9ff;
+    box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+  }
+
+  .country-select:hover {
+    border-color: #00d9ff;
+  }
+
+  .phone-input {
+    flex: 1;
+  }
+
+  .country-select option {
+    padding: 8px;
+    background: white;
+    color: #1e293b;
+  }
+    
+    .auth-container {
+      background: white; color: #1e293b;
+      border-radius: 16px; width: 100%; max-width: 420px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5); overflow: hidden;
+    }
+    .auth-header {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f8fafc;
+    }
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 14px;
+      cursor: pointer;
+      font-weight: 700;
+      color: #64748b;
+      border-top: 3px solid transparent;
+      transition: 0.2s;
+      user-select: none;
+    }
+    .auth-tab.active {
+      background: white; color: #00d9ff; border-top: 3px solid #00d9ff;
+    }
+    .auth-body { padding: 40px; }
+
+    .logo-container {
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    label { display: block; font-size: 0.85rem; margin-bottom: 5px; font-weight: 600; color: #64748b; }
+    input {
+      width: 100%; padding: 12px;
+      border: 1px solid #e2e8f0; border-radius: 8px; font-size: 1rem;
+    }
+    input:focus { outline: none; border-color: #00d9ff; }
+
+    
+    
+    /* ✅ NOVO: Estilo para o small abaixo do telefone */
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      font-size: 0.8rem;
+      color: #64748b;
+    }
+
+    button {
+      width: 100%; padding: 14px; background: #00d9ff; color: white;
+      border: none; border-radius: 8px; font-weight: 700; cursor: pointer;
+      font-size: 1rem; margin-top: 10px; transition: 0.3s;
+    }
+    button:hover { background: #00b8d9; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 217, 255, 0.3); }
+
+    .back-link { display: block; margin-top: 20px; color: #64748b; text-decoration: none; font-size: 0.9rem; text-align: center; }
+    .back-link:hover { color: #00d9ff; }
+
+    .hidden { display: none; }
+
+    .msg {
+      margin-top: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      display: none;
+    }
+    .msg.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+    .msg.error { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+    .msg.info { background: #eff6ff; color: #1e3a8a; border: 1px solid #bfdbfe; }
+
+    .small-actions {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+    .small-actions a {
+      color: #00b8d9;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .small-actions a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <div class="auth-tab active" onclick="switchTab('login')" id="tab-login">Entrar</div>
+      <div class="auth-tab" onclick="switchTab('register')" id="tab-register">Criar Conta</div>
+    </div>
+
+    <div class="auth-body">
+      <div class="logo-container">
+        <img src="https://i.ibb.co/wFFzDMy9/tunecraft-logo-transparente.png" alt="TuneCraft" style="height: 60px;">
+      </div>
+
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="loginEmail" required placeholder="seu@email.com">
+        </div>
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="loginPass" required placeholder="••••••••">
+        </div>
+        <button type="submit" id="btnLogin">Acessar Área Logada</button>
+
+        <div class="small-actions">
+          <a href="#" onclick="handleForgotPassword(event)">Esqueci minha senha</a>
+          <a href="#" onclick="switchTab('register')">Criar conta</a>
+        </div>
+      </form>
+
+      <form id="register-form" class="hidden" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label>Nome Completo</label>
+          <input type="text" id="regName" required placeholder="Seu nome">
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="regEmail" required placeholder="seu@email.com">
+        </div>
+        
+        <div class="form-group">
+  <label>WhatsApp</label>
+  <div class="phone-input-group">
+    <!-- Seletor de país -->
+    <select id="regCountry" class="country-select">
+      <option value="BR" data-code="+55" data-flag="🇧🇷">🇧🇷 Brasil (+55)</option>
+      <option value="US" data-code="+1" data-flag="🇺🇸">🇺🇸 USA/Canada (+1)</option>
+      <option value="MX" data-code="+52" data-flag="🇲🇽">🇲🇽 México (+52)</option>
+      <option value="PT" data-code="+351" data-flag="🇵🇹">🇵🇹 Portugal (+351)</option>
+      <option value="ES" data-code="+34" data-flag="🇪🇸">🇪🇸 Espanha (+34)</option>
+      <option value="AR" data-code="+54" data-flag="🇦🇷">🇦🇷 Argentina (+54)</option>
+      <option value="CL" data-code="+56" data-flag="🇨🇱">🇨🇱 Chile (+56)</option>
+      <option value="CO" data-code="+57" data-flag="🇨🇴">🇨🇴 Colômbia (+57)</option>
+      <option value="PE" data-code="+51" data-flag="🇵🇪">🇵🇪 Peru (+51)</option>
+      <option value="FR" data-code="+33" data-flag="🇫🇷">🇫🇷 França (+33)</option>
+      <option value="IT" data-code="+39" data-flag="🇮🇹">🇮🇹 Itália (+39)</option>
+      <option value="DE" data-code="+49" data-flag="🇩🇪">🇩🇪 Alemanha (+49)</option>
+      <option value="UK" data-code="+44" data-flag="🇬🇧">🇬🇧 Reino Unido (+44)</option>
+      <option value="AU" data-code="+61" data-flag="🇦🇺">🇦🇺 Austrália (+61)</option>
+      <option value="JP" data-code="+81" data-flag="🇯🇵">🇯🇵 Japão (+81)</option>
+      <option value="CN" data-code="+86" data-flag="🇨🇳">🇨🇳 China (+86)</option>
+      <option value="IN" data-code="+91" data-flag="🇮🇳">🇮🇳 Índia (+91)</option>
+      <option value="ZA" data-code="+27" data-flag="🇿🇦">🇿🇦 África do Sul (+27)</option>
+    </select>
+
+    <!-- Campo de telefone -->
+    <input 
+      type="tel" 
+      id="regPhone" 
+      class="phone-input"
+      required 
+      placeholder="(11) 99999-9999"
+      autocomplete="tel"
+    >
+  </div>
+  <small>📱 Selecione o país e digite seu número</small>
+</div>
+        
+        <div class="form-group">
+          <label>Senha</label>
+          <input type="password" id="regPass" required placeholder="Crie uma senha (mín. 6)">
+        </div>
+        <div class="form-group">
+          <label>Confirmar Senha</label>
+          <input type="password" id="regConfirm" required placeholder="Repita a senha">
+        </div>
+        <button type="submit" id="btnRegister">Criar Conta</button>
+
+        <div class="small-actions">
+          <a href="#" onclick="switchTab('login')">Já tenho conta</a>
+          <span></span>
+        </div>
+      </form>
+
+      <div id="msgBox" class="msg"></div>
+
+      <a href="index.html" class="back-link">← Voltar para o site principal</a>
+    </div>
+  </div>
+
+  <script>
+    // =========================
+    // 1) CONFIG DO SUPABASE
+    // =========================
+    const SUPABASE_URL = "https://miupzfchvfbqbznfhvix.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1pdXB6ZmNodmZicWJ6bmZodml4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxOTYwNzksImV4cCI6MjA4NDc3MjA3OX0.rz0W9qVovRvAeyBQ55LRewOAOM5a8pNJs1-UwWttATw";
+
+    window.sb = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const SITE_ORIGIN = window.location.origin;
+
+    // =========================
+    // 2) UI helpers
+    // =========================
+    function showMsg(type, text) {
+      const box = document.getElementById("msgBox");
+      box.className = "msg " + type;
+      box.innerText = text;
+      box.style.display = "block";
+    }
+
+    function clearMsg() {
+      const box = document.getElementById("msgBox");
+      box.style.display = "none";
+      box.innerText = "";
+      box.className = "msg";
+    }
+
+    function setLoading(btnId, isLoading, label) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = isLoading;
+      btn.innerText = isLoading ? "Aguarde..." : label;
+      btn.style.opacity = isLoading ? 0.75 : 1;
+    }
+
+    // =========================
+    // 3) Tabs
+    // =========================
+    window.switchTab = function(tab) {
+      clearMsg();
+
+      if (tab === 'login') {
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('tab-login').classList.add('active');
+        document.getElementById('tab-register').classList.remove('active');
+      } else {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+        document.getElementById('tab-login').classList.remove('active');
+        document.getElementById('tab-register').classList.add('active');
+      }
+    };
+
+    // =========================
+    // 4) REDIRECIONA SE JÁ ESTIVER LOGADO
+    // =========================
+    async function redirectIfLogged() {
+      const { data } = await window.sb.auth.getSession();
+      if (data?.session?.user) {
+        const user = data.session.user;
+        const fullName = user.user_metadata?.full_name || "Usuário";
+
+        localStorage.setItem("tuneCraftUser", JSON.stringify({
+          name: fullName,
+          email: user.email,
+          user_id: user.id
+        }));
+
+        window.location.href = "dashboard.html";
+      }
+    }
+    redirectIfLogged();
+
+    // =========================
+    // 5) LOGIN REAL
+    // =========================
+    window.handleLogin = async function(e) {
+      e.preventDefault();
+      clearMsg();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value;
+
+      if (!email || !pass) return showMsg("error", "Preencha email e senha.");
+
+      setLoading("btnLogin", true, "Acessar Área Logada");
+
+      const { data, error } = await window.sb.auth.signInWithPassword({
+        email,
+        password: pass
+      });
+
+      setLoading("btnLogin", false, "Acessar Área Logada");
+
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("invalid login credentials")) return showMsg("error", "Email ou senha incorretos.");
+        if (msg.includes("email not confirmed")) return showMsg("info", "Seu email ainda não foi confirmado. Verifique sua caixa de entrada e spam.");
+        return showMsg("error", "Erro ao entrar: " + error.message);
+      }
+
+      const user = data.session.user;
+      const fullName = user.user_metadata?.full_name || "Usuário";
+
+      localStorage.setItem("tuneCraftUser", JSON.stringify({
+        name: fullName,
+        email: user.email,
+        user_id: user.id
+      }));
+
+      window.location.href = "dashboard.html";
+    };
+
+    // =========================
+    // 6) CADASTRO REAL (✅ COM TELEFONE)
+    // =========================
+    window.handleRegister = async function(e) {
+      e.preventDefault();
+      clearMsg();
+
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim(); // ✅ NOVO
+      const pass = document.getElementById('regPass').value;
+      const confirm = document.getElementById('regConfirm').value;
+
+      if (!name || !email || !phone || !pass) return showMsg("error", "Preencha todos os campos.");
+      
+      // ✅ Validar telefone
+      if (!/^[0-9]{10,11}$/.test(phone)) {
+        return showMsg("error", "WhatsApp inválido! Use apenas números com DDD (10 ou 11 dígitos).");
+      }
+      
+      if (pass.length < 6) return showMsg("error", "A senha precisa ter no mínimo 6 caracteres.");
+      if (pass !== confirm) return showMsg("error", "Senhas não conferem!");
+
+      setLoading("btnRegister", true, "Criar Conta");
+
+      // ✅ Criar usuário com telefone nos metadados
+      const { data, error } = await window.sb.auth.signUp({
+        email,
+        password: pass,
+        options: {
+          data: { 
+            full_name: name,
+            phone: phone // ✅ SALVAR TELEFONE
+          },
+          emailRedirectTo: SITE_ORIGIN + "/login.html"
+        }
+      });
+
+      setLoading("btnRegister", false, "Criar Conta");
+
+      if (error) {
+        const msg = (error.message || "").toLowerCase();
+        if (msg.includes("user already registered")) {
+          showMsg("info", "Esse email já tem conta. Vá em 'Entrar'.");
+          window.switchTab("login");
+          document.getElementById("loginEmail").value = email;
+          return;
+        }
+        return showMsg("error", "Erro ao criar conta: " + error.message);
+      }
+
+      // ✅ Salvar na tabela profiles também
+      if (data.user) {
+        const { error: profileError } = await window.sb
+          .from('profiles')
+          .upsert({
+            id: data.user.id,
+            email: email,
+            full_name: name,
+            phone: phone // ✅ SALVAR NO PROFILE
+          });
+
+        if (profileError) {
+          console.error('⚠️ Erro ao criar profile:', profileError);
+        }
+      }
+
+      // Se email confirmation estiver ligada, não vem session
+      if (!data?.session) {
+        showMsg("success", "Conta criada! Agora confirme seu email (caixa de entrada / spam) para entrar.");
+        window.switchTab("login");
+        document.getElementById("loginEmail").value = email;
+        document.getElementById("loginPass").value = "";
+        return;
+      }
+
+      // Se confirmação estiver desligada, loga direto
+      const user = data.session.user;
+      localStorage.setItem("tuneCraftUser", JSON.stringify({
+        name: name,
+        email: user.email,
+        user_id: user.id
+      }));
+
+      showMsg("success", "Conta criada! Redirecionando...");
+      setTimeout(() => window.location.href = "dashboard.html", 700);
+    };
+
+    // =========================
+    // 7) ESQUECI MINHA SENHA
+    // =========================
+    window.handleForgotPassword = async function(e) {
+      e.preventDefault();
+      clearMsg();
+
+      const email = document.getElementById('loginEmail').value.trim();
+      if (!email) return showMsg("error", "Digite seu email no campo acima para receber o link.");
+
+      setLoading("btnLogin", true, "Acessar Área Logada");
+
+      const { error } = await window.sb.auth.resetPasswordForEmail(email, {
+        redirectTo: SITE_ORIGIN + "/login.html"
+      });
+
+      setLoading("btnLogin", false, "Acessar Área Logada");
+
+      if (error) return showMsg("error", "Erro ao enviar email: " + error.message);
+
+      showMsg("success", "Enviamos um link de recuperação para seu email (verifique também o spam).");
+    };
+  </script>
+
+</body>
+</html>
+

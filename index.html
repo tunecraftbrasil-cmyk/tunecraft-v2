@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TuneCraft - Crie Músicas Personalizadas</title>
+    <link rel="stylesheet" href="chat.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #00d9ff;
+            --secondary: #6366f1;
+            --success: #10b981;
+            --dark: #0a0e27;
+            --dark-secondary: #0f1629;
+            --dark-tertiary: #1a202c;
+            --light: #f8fafc;
+            --border: #2d3748;
+            --text-dark: #ffffff;
+            --text-light: #cbd5e1;
+            --text-muted: #94a3b8;
+            --error: #ef4444;
+            --glass: rgba(255, 255, 255, 0.05);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background: var(--dark);
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* FULL SCREEN SECTIONS */
+        header, .testimonials, .features:nth-of-type(1), .pricing, .how-works, footer {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-secondary) 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+            justify-content: center;
+        }
+        header::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 217, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 70%, rgba(99, 102, 241, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        header .container { position: relative; z-index: 1; }
+
+        .logo-header { display: inline-block; margin-bottom: 10px; animation: fadeInDown 0.8s ease; }
+        .logo-header img { height: 70px; filter: drop-shadow(0 10px 20px rgba(0, 217, 255, 0.2)); }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+        header h1 { font-size: 2.2rem; margin-bottom: 10px; font-weight: 700; }
+        header p.hero-text { font-size: 1rem; margin-bottom: 8px; color: var(--text-light); font-weight: 300; }
+        header p.trust-text { margin-bottom: 25px; color: var(--text-muted); font-size: 0.85rem; margin-top: 15px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; padding: 12px 30px; border: none; border-radius: 10px;
+            font-size: 0.95rem; font-weight: 600; cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0, 217, 255, 0.2);
+            text-decoration: none; display: inline-block;
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 40px rgba(0, 217, 255, 0.4); }
+
+        .header-testimonials-container { margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); width: 100%; }
+        .header-testimonials-container h3 { font-size: 1.2rem; color: var(--text-light); margin-bottom: 20px; font-weight: 600; }
+        
+        .testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; text-align: left; }
+        
+        .testimonial {
+            background: rgba(255, 255, 255, 0.03); padding: 20px; border-radius: 12px;
+            border-left: 3px solid var(--primary); border: 1px solid var(--border);
+            backdrop-filter: blur(10px); transition: all 0.3s;
+        }
+        .testimonial:hover { border-color: var(--primary); background: rgba(0, 217, 255, 0.08); transform: translateY(-5px); }
+        .testimonial-text { margin-bottom: 15px; font-style: italic; color: var(--text-light); line-height: 1.5; font-size: 0.85rem; }
+        .testimonial-author { font-weight: 600; color: var(--primary); font-size: 0.8rem; }
+
+        /* FEATURES */
+        .features { padding: 60px 20px; background: var(--dark); position: relative; }
+        .features h2 { text-align: center; font-size: 2.2rem; margin-bottom: 50px; color: var(--text-dark); font-weight: 700; letter-spacing: -0.5px; }
+        .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 25px; margin-bottom: 40px; }
+        
+        .feature-card {
+            padding: 35px 25px; background: var(--glass); border-radius: 16px;
+            border: 1px solid var(--border); text-align: center; backdrop-filter: blur(10px);
+            transition: all 0.3s; position: relative; overflow: hidden;
+        }
+        .feature-card:hover { border-color: var(--primary); background: rgba(0, 217, 255, 0.08); transform: translateY(-5px); }
+        .feature-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+        .feature-card h3 { margin-bottom: 12px; color: var(--text-dark); font-weight: 600; font-size: 1.2rem; }
+        .feature-card p { color: var(--text-light); line-height: 1.8; font-size: 0.9rem; }
+
+        /* PRICING */
+        .pricing { padding: 40px 20px; background: var(--dark); border-top: 1px solid var(--border); min-height: auto; }
+        .pricing h2 { text-align: center; font-size: 2rem; margin-bottom: 30px; color: var(--text-dark); font-weight: 700; }
+        .pricing-single-container { display: flex; justify-content: center; }
+        
+        .pricing-card-single {
+            border: 3px solid var(--primary); border-radius: 20px; padding: 25px; text-align: center; position: relative;
+            background: linear-gradient(135deg, rgba(0,217,255,0.12) 0%, rgba(99,102,241,0.08) 100%);
+            backdrop-filter: blur(10px); max-width: 380px; width: 100%;
+            box-shadow: 0 0 60px rgba(16,185,129,0.4); animation: superDealPulse 2s infinite;
+        }
+        @keyframes superDealPulse { 0%, 100% { box-shadow: 0 0 60px rgba(16,185,129,0.4); } 50% { box-shadow: 0 0 80px rgba(16,185,129,0.7), 0 0 100px rgba(0,217,255,0.3); } }
+
+        .pricing-badge {
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(45deg, #10b981, #f59e0b); color: white;
+            padding: 6px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 700;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); animation: urgentBlink 1.5s infinite; text-transform: uppercase;
+        }
+        @keyframes urgentBlink { 0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.8; transform: translateX(-50%) scale(1.05); } }
+
+        .plan-name { font-size: 1.5rem; font-weight: 700; margin: 15px 0 8px 0; color: var(--text-dark); }
+        .plan-price { position: relative; margin: 10px 0; }
+        .old-price { font-size: 1.3rem; color: #ef4444 !important; text-decoration: line-through; font-weight: 400; opacity: 0.8; }
+        .new-price { color: #10b981 !important; font-size: 2.4rem !important; font-weight: 800; animation: bounceIn 1s ease-out; text-shadow: 0 0 20px rgba(16,185,129,0.5); }
+        @keyframes bounceIn { 0% { transform: scale(0.5); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+        
+        .discount-label { color: #f59e0b !important; font-size: 1rem; font-weight: bold; }
+        .timer { font-size: 0.95rem; color: #f59e0b; font-weight: bold; margin: 8px 0; }
+        .plan-description { color: var(--text-light); margin: 10px 0; font-size: 0.9rem; }
+        
+        .plan-features { list-style: none; margin: 12px 0; text-align: left; padding: 0 15px; }
+        .plan-features li { padding: 6px 0; border-bottom: 1px solid var(--border); color: var(--text-light); font-size: 0.9rem; }
+        .plan-features li:last-child { border-bottom: none; }
+        .plan-features li::before { content: '✓'; color: var(--success); font-weight: bold; margin-right: 10px; font-size: 1rem; }
+        
+        .guarantee { font-size: 0.8rem; color: #10b981; margin-top: 8px; font-weight: bold; }
+
+        .btn-checkout-primary {
+            width: 100%; padding: 14px !important; background: linear-gradient(45deg, #10b981, #f59e0b) !important;
+            font-size: 1rem !important; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px;
+        }
+        .btn-checkout-primary:hover { animation: shake 0.3s; transform: scale(1.05) !important; }
+        @keyframes shake { 0%,100%{ transform: translateX(0); } 25%{ transform: translateX(-3px); } 75%{ transform: translateX(3px); } }
+
+        /* HOW IT WORKS */
+        .how-works { background: var(--dark-secondary); padding: 50px 20px; }
+        .how-works h2 { text-align: center; font-size: 2rem; margin-bottom: 40px; color: var(--text-dark); font-weight: 700; }
+        
+        /* FOOTER */
+        footer { background: var(--dark); color: var(--text-light); text-align: center; padding: 40px 20px; border-top: 1px solid var(--border); }
+        footer p { margin-bottom: 10px; font-size: 0.9rem; }
+
+        /* RESPONSIVE DESIGN - MERGED */
+        @media (max-width: 480px) {
+            .container { padding: 0 15px; }
+            header { padding: 30px 15px; }
+            header h1 { font-size: 1.6rem; margin-bottom: 10px; }
+            header p.hero-text { font-size: 0.9rem; }
+            
+            .testimonials-grid, .features-grid { grid-template-columns: 1fr; gap: 15px; }
+            .testimonial { padding: 15px; }
+            .header-testimonials-container h3 { font-size: 1.1rem; }
+            
+            .btn-primary { width: 100%; max-width: 280px; }
+            
+            .features h2, .pricing h2, .how-works h2 { font-size: 1.5rem; }
+            .feature-card { padding: 20px 15px; }
+            .feature-icon { font-size: 2.5rem; }
+            .feature-card h3 { font-size: 1rem; }
+            
+            .pricing { padding: 30px 15px; }
+            .pricing-card-single { padding: 20px; max-width: 100%; }
+            .new-price { font-size: 1.8rem !important; }
+            
+            .how-works { padding: 30px 15px; }
+        }
+
+        @media (max-width: 768px) {
+            .btn-primary { width: 100%; max-width: 300px; }
+            .testimonials-grid, .features-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+            .features h2, .pricing h2, .how-works h2 { font-size: 1.8rem; }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .features-grid, .testimonials-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1025px) {
+            .testimonials-grid { grid-template-columns: repeat(3, 1fr); }
+            .features-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>🎵 Criar Música Perfeita</h2>
+                <button class="close-chat" onclick="closeChat()">×</button>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="chat-messages" id="chatMessages"></div>
+
+            <div class="chat-input-section" id="inputSection"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="container">
+            <div class="logo-header">
+                <img src="https://i.ibb.co/wFFzDMy9/tunecraft-logo-transparente.png" alt="TuneCraft Logo">
+            </div>
+            <h1>Transforme qualquer história em uma música memorável</h1>
+            <p class="hero-text">100% personalizada. Letra sob medida. Voz profissional. Perfeito para pedidos, homenagens, celebrações e qualquer ocasião especial.</p>
+            
+            <div style="margin-top: 20px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; flex-direction: column; align-items: center;">
+                <button class="btn-primary" onclick="document.getElementById('ocasions').scrollIntoView({behavior: 'smooth'})">Saiba mais</button>
+                <button class="btn-primary" style="background: transparent; border: 2px solid var(--primary); box-shadow: none;" onclick="document.getElementById('precos').scrollIntoView({behavior: 'smooth'})">Aproveitar Promoção</button>
+            </div>
+            
+            <p class="trust-text">Em média 24h para entrega | Garantia 30 dias</p>
+
+            <div class="header-testimonials-container">
+                <h3>Já transformamos histórias em músicas</h3>
+                <div class="testimonials-grid">
+                    <div class="testimonial">
+                        <div class="testimonial-text">"Eu queria pedir ela em casamento de um jeito diferente. A música contou nossa história desde o primeiro encontro na faculdade. Ela chorou do início ao fim e disse SIM!"</div>
+                        <div class="testimonial-author">João Estevez - Pedido de Casamento</div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-text">"Dei de presente de 60 anos para minha mãe. Colocaram na letra detalhes que só a gente sabia, como o bolo de cenoura dela. Foi o momento mais emocionante da festa."</div>
+                        <div class="testimonial-author">Marina Costa - Homenagem Familiar</div>
+                    </div>
+                    <div class="testimonial">
+                        <div class="testimonial-text">"Confesso que achei que fosse ser uma música genérica, mas a voz do cantor e o arranjo ficaram incríveis. Parece música famosa. O atendimento foi rápido e muito atencioso."</div>
+                        <div class="testimonial-author">Rafael Mendes - Aniversário</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section id="ocasions" class="features">
+        <div class="container">
+            <h2>Ocasiões para sua música personalizada</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">💍</span>
+                    <h3>Pedido de casamento</h3>
+                    <p>Em vez de um simples "você aceita?", conte a história de vocês em música.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎂</span>
+                    <h3>Aniversário inesquecível</h3>
+                    <p>Uma música falando do jeitinho da pessoa e das piadas internas.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">❤️</span>
+                    <h3>Pais, avós e família</h3>
+                    <p>Homenagens que viram legado, agradeça por tudo o que fizeram.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">✨</span>
+                    <h3>Qualquer outra situação!</h3>
+                    <p>Trabalho, amigos, viagem, formatura... Sua música cabe em QUALQUER contexto.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🤝</span>
+                    <h3>Reconciliação e Desculpas</h3>
+                    <p>Às vezes faltam palavras. Uma música pode dizer tudo o que você sente e pedir perdão.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎓</span>
+                    <h3>Formaturas e Conquistas</h3>
+                    <p>Celebre a jornada e o sucesso com um hino personalizado sobre essa grande vitória.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; flex-direction: column; align-items: center;">
+                <button class="btn-primary" onclick="document.getElementById('how-works').scrollIntoView({behavior: 'smooth'})">Como funciona</button>
+                <button class="btn-primary" style="background: linear-gradient(45deg, #10b981, #f59e0b); border: none;" onclick="document.getElementById('precos').scrollIntoView({behavior: 'smooth'})">Criar Minha Música</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-works" class="how-works">
+        <div class="container">
+            <h2>Como funciona na prática</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">1️⃣</span>
+                    <h3>Você garante sua música</h3>
+                    <p>Faça o cadastro rápido e o pagamento para iniciar o processo.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">2️⃣</span>
+                    <h3>Conta sua história</h3>
+                    <p>Após o pagamento, nosso assistente coleta todos os detalhes da sua história.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">3️⃣</span>
+                    <h3>Revisa a letra e detalhes</h3>
+                    <p>Após receber a letra, nossa equipe verifica se você quer sugerir alguma mudança ou já aprovar a letra.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">4️⃣</span>
+                    <h3>Recebe a música</h3>
+                    <p>Em até 24H você recebe a música em alta qualidade no seu email.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 40px; display: flex; justify-content: center;">
+                <button class="btn-primary" style="background: transparent; border: 2px solid var(--primary); box-shadow: none;" onclick="document.getElementById('precos').scrollIntoView({behavior: 'smooth'})">Aproveitar Promoção</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="precos" class="pricing">
+        <div class="container">
+            <h2>Crie sua música hoje</h2>
+            <div class="pricing-single-container">
+                <div class="pricing-card-single">
+                    <div class="pricing-badge">SUPER OFERTA LIMITADA!</div>
+                    
+                    <div class="plan-name">Single Exclusivo</div>
+                    
+                    <div class="plan-price">
+                        <span class="old-price">R$ 99,90</span>
+                        <div class="new-price">R$ 49,90</div>
+                        <div class="discount-label">50% OFF!</div>
+                    </div>
+
+                    <div style="background: rgba(16,185,129,0.2); border-radius: 15px; padding: 8px 15px; margin: 10px 0; font-size: 0.9rem; color: var(--success); font-weight: bold;">
+                        ✓ 100% Personalizada para você
+                    </div>
+                    <div class="timer" id="timer">⏰ Termina em: 23h 45m 30s</div>
+
+                    <div class="plan-description">Tudo que você precisa para emocionar!</div>
+
+                    <ul class="plan-features">
+                        <li>Música 100% Original e Exclusiva</li>
+                        <li>Letra Personalizada sob Medida</li>
+                        <li>Arranjo Profissional com Vozes</li>
+                        <li>Qualidade de Estúdio (MP3 + WAV)</li>
+                    </ul>
+
+                    <button class="btn-primary btn-checkout-primary" onclick="window.location.href='login.html'">Garantir Minha Música Agora</button>
+                    
+                    <div class="guarantee">✓ Garantia 30 dias ou dinheiro de volta!</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div style="margin-bottom: 15px;">
+                <img src="https://i.ibb.co/wFFzDMy9/tunecraft-logo-transparente.png" alt="TuneCraft" style="height: 30px; filter: drop-shadow(0 3px 8px rgba(0, 217, 255, 0.2));">
+            </div>
+            <p>30 dias de garantia de devolução | Dados seguros</p>
+            <p style="margin-top: 15px; opacity: 0.8;">© 2026 TuneCraft. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        let tempo = 24 * 60 * 60;
+        setInterval(() => {
+            tempo--;
+            let h = Math.floor(tempo / 3600);
+            let m = Math.floor((tempo % 3600) / 60);
+            let s = tempo % 60;
+            document.getElementById('timer').textContent = `⏰ Termina em: ${h.toString().padStart(2,'0')}h ${m.toString().padStart(2,'0')}m ${s.toString().padStart(2,'0')}s`;
+        }, 1000);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="chat.js?v=2026-01-25T17:24"></script>
+</body>
+</html>

@@ -1,0 +1,2367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Cliente - TuneCraft</title>
+    <link rel="stylesheet" href="chat.css">
+    
+    <!-- Supabase JS apenas UMA vez -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- React para LyricPreview -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        /* TUNECRAFT DASHBOARD CSS LIMPO SAFE - Mantém modais, cards, toasts, player, tabbar mobile, FAB - Adiciona header mobile sticky app-like */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #070b14;
+            --surface: #0b1220;
+            --surface-2: #0f1a2e;
+            --border: rgba(148, 163, 184, 0.22);
+            --text: #e5e7eb;
+            --text-2: #cbd5e1;
+            --muted: #94a3b8;
+            --brand: #00d9ff;
+            --brand-2: #6366f1;
+            --success: #10b981;
+            --warn: #f59e0b;
+            --danger: #ef4444;
+            --shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR DESKTOP */
+        .sidebar {
+            width: 260px;
+            background: linear-gradient(180deg, #070b14 0%, #0a0e27 100%);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            flex-shrink: 0;
+            overflow: hidden;
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logo-container {
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 50px;
+        }
+
+        .menu {
+            flex: 1;
+        }
+
+        .menu-item {
+            padding: 15px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.25s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--muted);
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.10);
+            color: var(--text);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.10);
+            color: var(--text);
+            border-left: 3px solid var(--brand);
+        }
+
+        .menu-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            display: block;
+            opacity: 0.86;
+        }
+
+        .menu-item.active .menu-icon {
+            opacity: 1;
+            filter: brightness(1.15);
+        }
+
+        /* botao nova musica desktop */
+        .new-music-btn {
+            margin-top: auto;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 900;
+            transition: 0.25s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 12px 26px rgba(0, 217, 255, 0.18);
+        }
+
+        .new-music-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(0, 217, 255, 0.22);
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            min-width: 0;
+            background: radial-gradient(1200px 700px at 30% 0%, rgba(0, 217, 255, 0.10), transparent 60%),
+                        radial-gradient(900px 600px at 80% 20%, rgba(99, 102, 241, 0.10), transparent 60%),
+                        var(--bg);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 999px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            color: var(--text-2);
+            flex: 0 0 auto;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.25s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* CARDS */
+        .card {
+            background: rgba(15, 26, 46, 0.82);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+            color: var(--text);
+            backdrop-filter: blur(8px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card h2, .card h3, .card h4 {
+            color: var(--text);
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.14);
+            color: #fbbf24;
+        }
+
+        .status-production {
+            background: rgba(59, 130, 246, 0.14);
+            color: #93c5fd;
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.14);
+            color: #6ee7b7;
+        }
+
+        .status-awaiting {
+            background: rgba(245, 158, 11, 0.16);
+            color: #fcd34d;
+        }
+
+        .status-draft {
+            background: rgba(190, 24, 93, 0.16);
+            color: #f9a8d4;
+        }
+
+        /* draft */
+        .draft-summary {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #be185d;
+        }
+
+        .draft-summary p {
+            margin: 8px 0;
+            font-size: 0.95rem;
+            color: var(--text-2);
+            word-break: break-word;
+        }
+
+        .draft-summary p strong {
+            color: var(--text);
+        }
+
+        /* lyrics */
+        .lyrics-box {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            white-space: pre-wrap;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            word-break: break-word;
+            color: var(--text-2);
+        }
+
+        /* comparação */
+        .comparison-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+            min-width: 0;
+        }
+
+        .version-card {
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            border-radius: 12px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            min-width: 0;
+        }
+
+        .version-changelog {
+            background: rgba(245, 158, 11, 0.10);
+            border-left: 3px solid rgba(245, 158, 11, 0.85);
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 0.9rem;
+            border-radius: 6px;
+            word-break: break-word;
+            color: var(--text-2);
+        }
+
+        /* actions botoes */
+        .action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 900;
+            transition: 0.2s;
+        }
+
+        .btn-approve {
+            background: var(--success);
+            color: #062012;
+        }
+
+        .btn-approve:hover {
+            filter: brightness(1.05);
+        }
+
+        .btn-approve:disabled {
+            background: rgba(148, 163, 184, 0.35);
+            cursor: not-allowed;
+        }
+
+        .btn-revise {
+            background: transparent;
+            border: 2px solid rgba(245, 158, 11, 0.75);
+            color: #fbbf24;
+        }
+
+        .btn-revise:hover {
+            background: rgba(245, 158, 11, 0.12);
+        }
+
+        .btn-revise:disabled {
+            background: rgba(255, 255, 255, 0.03);
+            color: rgba(148, 163, 184, 0.8);
+            border-color: rgba(148, 163, 184, 0.25);
+            cursor: not-allowed;
+        }
+
+        .btn-download {
+            background: #0b1020;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            color: var(--text);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+
+        .btn-select {
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #001018;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        /* PROFILE FORMS */
+        .profile-form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .profile-form input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid rgba(148, 163, 184, 0.18);
+            border-radius: 10px;
+            margin-top: 6px;
+            max-width: 420px;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
+
+        .profile-form input#profEmail {
+            background: #f1f5f9 !important;
+            color: #64748b !important;
+        }
+
+        .btn-save-profile {
+            margin-top: 20px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #fff;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        /* EMPTY STATE PREMIUM */
+        .tc-empty {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 44px 16px;
+        }
+
+        .tc-empty-card {
+            width: min(560px, 100%);
+            background: rgba(15, 26, 46, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 18px;
+            padding: 26px 22px;
+            text-align: center;
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(10px);
+        }
+
+        .tc-empty-logo {
+            width: 76px;
+            height: 76px;
+            margin: 6px auto 14px;
+            display: grid;
+            place-items: center;
+            border-radius: 18px;
+            background: radial-gradient(circle at 30% 20%, rgba(0, 217, 255, 0.18), transparent 55%),
+                        radial-gradient(circle at 70% 80%, rgba(99, 102, 241, 0.18), transparent 55%),
+                        rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .tc-empty-logo img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+            filter: drop-shadow(0 10px 20px rgba(0, 217, 255, 0.15));
+        }
+
+        .tc-empty-title {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        .tc-empty-sub {
+            color: rgba(203, 213, 225, 0.80);
+            font-size: 0.98rem;
+            line-height: 1.35;
+            margin-bottom: 18px;
+        }
+
+        .tc-empty-cta {
+            width: 100%;
+            max-width: 340px;
+            margin: 0 auto;
+            border: none;
+            cursor: pointer;
+            font-weight: 900;
+            font-size: 1rem;
+            padding: 14px 16px;
+            border-radius: 14px;
+            color: #061018;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            box-shadow: 0 14px 30px rgba(0, 217, 255, 0.16);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: 0.2s ease;
+        }
+
+        .tc-empty-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 18px 38px rgba(0, 217, 255, 0.22);
+        }
+
+        .tc-empty-hint {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: rgba(148, 163, 184, 0.85);
+        }
+
+        /* TOASTS */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast-message, .edit-draft-toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+            display: none;
+            z-index: 9999;
+            animation: slideInRight 0.25s;
+            max-width: calc(100vw - 40px);
+            word-break: break-word;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .toast-message.error {
+            background: var(--danger);
+        }
+
+        .toast-message.success {
+            background: var(--success);
+            color: #062012;
+        }
+
+        .toast-message.info {
+            background: #3b82f6;
+        }
+
+        .edit-draft-toast {
+            z-index: 10001;
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .edit-draft-toast.error {
+            background: var(--danger);
+        }
+
+        .edit-draft-toast.success {
+            background: var(--success);
+            color: #062012;
+        }
+
+        .edit-draft-toast.info {
+            background: #3b82f6;
+        }
+
+        /* MODAIS ALTERAR LETRA EDIT */
+        .alterar-modal, .edit-draft-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.72);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .alterar-modal.active, .edit-draft-modal.active {
+            display: flex;
+        }
+
+        .alterar-content, .edit-draft-content {
+            background: rgba(11, 18, 32, 0.96);
+            border: 1px solid rgba(148, 163, 184, 0.20);
+            border-radius: 18px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 26px;
+            box-shadow: var(--shadow);
+            color: var(--text);
+        }
+
+        .alterar-header, .edit-draft-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            gap: 10px;
+        }
+
+        .alterar-close, .edit-draft-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--muted);
+            line-height: 1;
+        }
+
+        .alterar-close:hover, .edit-draft-close:hover {
+            color: var(--text);
+        }
+
+        /* alterar modal fields */
+        .alterar-step {
+            margin-bottom: 18px;
+        }
+
+        .alterar-step h3 {
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .alterar-step p {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-bottom: 10px;
+        }
+
+        .alterar-step textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px solid rgba(148, 163, 184, 0.18);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
+
+        .alterar-step textarea:focus {
+            outline: none;
+            border-color: rgba(0, 217, 255, 0.85);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.14);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .alterar-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn-alterar-cancel {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(148, 163, 184, 0.25);
+            background: transparent;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 900;
+            color: var(--text-2);
+            min-width: 180px;
+        }
+
+        .btn-alterar-submit {
+            flex: 2;
+            padding: 12px;
+            border: none;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #fff;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 900;
+            min-width: 220px;
+        }
+
+        .btn-alterar-submit:disabled {
+            background: rgba(148, 163, 184, 0.35);
+            cursor: not-allowed;
+        }
+
+        /* edit draft */
+        .edit-draft-header {
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.16);
+            flex-wrap: wrap;
+        }
+
+        .edit-draft-header h2 {
+            color: var(--text);
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .edit-draft-header-info {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .edit-draft-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            font-size: 16px;
+            color: var(--muted);
+        }
+
+        .edit-draft-section-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--text);
+            margin-top: 22px;
+            margin-bottom: 12px;
+            padding: 10px 0;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.16);
+        }
+
+        .edit-draft-form-group {
+            margin-bottom: 16px;
+            padding: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border-left: 4px solid var(--brand);
+        }
+
+        .edit-draft-form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 900;
+            color: var(--text);
+            font-size: 0.9rem;
+        }
+
+        .edit-draft-form-group .field-name {
+            font-size: 0.75rem;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+            word-break: break-word;
+        }
+
+        .edit-draft-form-group input, .edit-draft-form-group textarea, .edit-draft-form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid rgba(148, 163, 184, 0.18);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: 0.2s;
+            min-width: 0;
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+        }
+
+        .edit-draft-form-group textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .edit-draft-form-group input:focus, .edit-draft-form-group textarea:focus, .edit-draft-form-group select:focus {
+            outline: none;
+            border-color: rgba(0, 217, 255, 0.85);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.14);
+        }
+
+        .edit-draft-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 22px;
+            padding-top: 18px;
+            border-top: 2px solid rgba(148, 163, 184, 0.16);
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .edit-draft-btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.25s;
+            font-size: 14px;
+        }
+
+        .edit-draft-btn-cancel {
+            background: transparent;
+            border: 2px solid rgba(148, 163, 184, 0.25);
+            color: var(--text-2);
+        }
+
+        .edit-draft-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .edit-draft-btn-save {
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #fff;
+        }
+
+        .edit-draft-btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 217, 255, 0.18);
+        }
+
+        .edit-draft-btn-save:disabled {
+            background: rgba(148, 163, 184, 0.35);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Letra modal textarea */
+        #lyricsModalText {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text);
+            border: 2px solid rgba(148, 163, 184, 0.18);
+            border-radius: 12px;
+            padding: 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+            resize: vertical;
+        }
+
+        /* RESPONSIVO TABLET */
+        @media (max-width: 1024px) {
+            .main-content {
+                padding: 22px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .sidebar {
+                width: 240px;
+            }
+        }
+
+        /* DESKTOP COMPACT SIDEBAR 769-1100 */
+        @media (min-width: 769px) and (max-width: 1100px) {
+            .sidebar {
+                width: 92px;
+                padding: 18px 10px;
+                align-items: center;
+            }
+
+            .logo-container {
+                display: none;
+            }
+
+            .menu-item {
+                justify-content: center;
+                padding: 14px 10px;
+            }
+
+            .menu-item span {
+                display: none;
+            }
+
+            .new-music-btn {
+                width: 56px;
+                height: 56px;
+                border-radius: 999px;
+                padding: 0;
+                font-size: 0;
+                margin: 14px 0 0 0;
+                position: static;
+                transform: none;
+            }
+
+            .new-music-btn::before {
+                content: '➕';
+                font-size: 30px;
+                font-weight: 900;
+                color: #fff;
+                line-height: 1;
+            }
+        }
+
+        /* MOBILE TAB BAR FAB HEADER STICKY */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+                height: 100vh;
+            }
+
+            /* header app-like */
+            .header {
+                position: sticky;
+                top: 0;
+                z-index: 60;
+                padding: 14px 14px;
+                margin-bottom: 12px;
+                background: rgba(7, 11, 20, 0.72);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            }
+
+            /* sidebar vira tab bar */
+            .sidebar {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: calc(74px + env(safe-area-inset-bottom));
+                padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+                z-index: 9998;
+                background: rgba(10, 14, 39, 0.92);
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                border-right: none;
+                flex-direction: row;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .logo-container {
+                display: none;
+            }
+
+            .sidebar nav {
+                width: 100%;
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                align-items: center;
+                gap: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+
+            .menu-item {
+                position: relative;
+                /* necessário pro ::after */
+                margin: 0;
+                padding: 8px 4px;
+                border-radius: 12px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                text-align: center;
+                white-space: nowrap;
+                min-width: 0;
+                border-left: none;
+                background: transparent;
+                color: rgba(203, 213, 225, 0.72);
+            }
+
+            .menu-item.active {
+                color: #fff;
+                background: rgba(0, 217, 255, 0.12);
+            }
+
+            .menu-item.active::after {
+                content: '';
+                position: absolute;
+                top: 6px;
+                width: 6px;
+                height: 6px;
+                border-radius: 999px;
+                background: var(--brand);
+                box-shadow: 0 0 14px rgba(0, 217, 255, 0.55);
+            }
+
+            .menu-icon {
+                width: 28px;
+                height: 28px;
+            }
+
+            .menu-item span {
+                display: block;
+                font-size: 11px;
+                line-height: 1.05;
+                opacity: 0.92;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            /* FAB central com diamante */
+            .new-music-btn {
+                position: fixed;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: calc(74px + env(safe-area-inset-bottom) + 14px);
+                width: 60px;
+                height: 60px;
+                border-radius: 999px;
+                padding: 0;
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0;
+                /* esconde texto */
+            }
+
+            .new-music-btn::before {
+                content: '';
+            }
+
+            .new-music-btn::after {
+                content: '';
+                width: 28px;
+                height: 28px;
+                background: url(images/diamante.png) center / contain no-repeat;
+                filter: drop-shadow(0 10px 18px rgba(0, 217, 255, 0.25));
+                display: block;
+            }
+
+            .new-music-btn:hover {
+                transform: translateX(-50%);
+            }
+
+            .main-content {
+                padding: 16px;
+                padding-bottom: calc(74px + env(safe-area-inset-bottom) + 90px);
+                height: 100vh;
+                overflow-y: auto;
+            }
+
+            .header h2 {
+                font-size: 1.15rem;
+            }
+
+            .avatar {
+                width: 36px;
+                height: 36px;
+            }
+
+            .card {
+                padding: 18px;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn-download {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .comparison-container {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+            .lyrics-box {
+                max-height: 260px;
+                padding: 14px;
+            }
+
+            .alterar-content, .edit-draft-content {
+                width: 100%;
+                padding: 18px;
+                border-radius: 16px;
+            }
+
+            /* toast acima da tab bar */
+            .toast-message, .edit-draft-toast {
+                bottom: calc(74px + env(safe-area-inset-bottom) + 18px);
+                right: 14px;
+                left: 14px;
+                max-width: calc(100vw - 28px);
+            }
+        }
+
+        @media (max-width: 420px) {
+            .sidebar {
+                height: calc(70px + env(safe-area-inset-bottom));
+            }
+
+            .new-music-btn {
+                width: 56px;
+                height: 56px;
+                bottom: calc(70px + env(safe-area-inset-bottom) + 14px);
+            }
+
+            .main-content {
+                padding: 14px;
+                padding-bottom: calc(70px + env(safe-area-inset-bottom) + 90px);
+            }
+        }
+
+        /* SCROLLBAR WEBKIT */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.22);
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.35);
+        }
+
+        /* TUNECRAFT AUDIO PLAYER */
+        .tc-player {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            border-radius: 14px;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .tc-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(11, 18, 32, 0.9);
+            color: var(--text);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            transition: 0.2s;
+        }
+
+        .tc-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(0, 217, 255, 0.45);
+        }
+
+        .tc-btn.play {
+            border: none;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(0, 217, 255, 0.14);
+        }
+
+        .tc-main {
+            min-width: 0;
+            display: grid;
+            gap: 8px;
+        }
+
+        .tc-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: baseline;
+            min-width: 0;
+        }
+
+        .tc-title {
+            font-weight: 900;
+            color: var(--text);
+            font-size: 0.95rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tc-time {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+            font-size: 0.82rem;
+            color: var(--muted);
+            flex: 0 0 auto;
+        }
+
+        .tc-bar {
+            position: relative;
+            height: 10px;
+            border-radius: 999px;
+            background: rgba(148, 163, 184, 0.16);
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .tc-progress {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--brand), var(--brand-2));
+        }
+
+        .tc-dot {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(0, 217, 255, 0.18);
+            left: 0;
+            pointer-events: none;
+        }
+
+        .tc-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .tc-mini {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            background: rgba(11, 18, 32, 0.85);
+            color: var(--text);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+
+        .tc-mini:hover {
+            border-color: rgba(0, 217, 255, 0.45);
+            transform: translateY(-1px);
+        }
+
+        .tc-vol {
+            width: 92px;
+            accent-color: var(--brand);
+        }
+
+        @media (max-width: 768px) {
+            .tc-player {
+                grid-template-columns: auto 1fr;
+                grid-template-rows: auto auto;
+            }
+
+            .tc-actions {
+                grid-column: 1 / -1;
+                justify-content: space-between;
+            }
+
+            .tc-vol {
+                width: 120px;
+            }
+        }
+
+        /* LYRICPREVIEW STYLES */
+        .lyric-preview-container {
+            padding: 0;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .success-badge {
+            color: #10b981;
+            font-size: 18px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .song-title {
+            font-size: 28px;
+            color: var(--text);
+            margin: 0 0 20px 0;
+        }
+
+        .confidence-checklist {
+            margin: 20px 0;
+        }
+
+        .checklist-title {
+            font-size: 16px;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .checklist-items {
+            display: grid;
+            gap: 12px;
+        }
+
+        .checklist-item {
+            display: flex;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+
+        .checklist-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .checklist-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .checklist-value {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 500;
+        }
+
+        .checklist-status {
+            color: #10b981;
+            font-weight: 600;
+            background: rgba(236, 253, 245, 0.8);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        .hook-highlight {
+            background: linear-gradient(135deg, rgba(254, 243, 199, 0.3), rgba(253, 230, 138, 0.3));
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .hook-highlight span {
+            display: block;
+            font-size: 12px;
+            color: #92400e;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .hook-highlight em {
+            font-style: italic;
+            font-weight: 500;
+            color: #78350f;
+            font-size: 16px;
+        }
+
+        .details-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .details-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 16px;
+        }
+
+        .highlights-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .highlight-item {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.3);
+            font-size: 14px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .highlight-icon {
+            font-size: 16px;
+            color: #10b981;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .action-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .security-message {
+            background: linear-gradient(135deg, rgba(236, 253, 245, 0.4), rgba(209, 250, 229, 0.4));
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #065f46;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 14px;
+            border-left: 4px solid #10b981;
+        }
+
+        .security-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .lp-btn {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            min-width: 160px;
+            transition: all 0.3s;
+        }
+
+        .lp-btn-revise {
+            background: transparent;
+            color: #fbbf24;
+            border: 2px solid rgba(245, 158, 11, 0.5);
+        }
+
+        .lp-btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .lp-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .lp-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Chat Modal criar nova música -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-container">
+            <div class="chat-header">
+                <h2>Criar Nova Música</h2>
+                <button class="close-chat" onclick="closeChat()"></button>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-section" id="inputSection"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Alteração de Letra -->
+    <div class="alterar-modal" id="alterarModal">
+        <div class="alterar-content">
+            <div class="alterar-header">
+                <h2>Alterar Letra</h2>
+                <button class="alterar-close" onclick="fecharAlterarModal()"></button>
+            </div>
+            <div class="alterar-step">
+                <h3>O que você gostaria de mudar na letra?</h3>
+                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 10px;">Exemplos: Tornar o refrão mais animado, Adicionar menção a Dourados, Mudar o tom de romântico para alegre</p>
+                <textarea id="mudancasDesejadas" placeholder="Ex: Gostaria que o refrão fosse mais energético e mencionasse nossa viagem para o Rio..." maxlength="500" oninput="updateAlterarCharCount('mudancasDesejadas', 'count1')"></textarea>
+                <div class="char-count"><span id="count1">0</span>/500</div>
+            </div>
+            <div class="alterar-step">
+                <h3>Há algo específico que DEVE permanecer?</h3>
+                <textarea id="manterElementos" placeholder="Ex: Mantenha as referências a Dourados e o nome Aline..." maxlength="300" oninput="updateAlterarCharCount('manterElementos', 'count2')"></textarea>
+                <div class="char-count"><span id="count2">0</span>/300</div>
+            </div>
+            <div class="alterar-step">
+                <h3>Observações finais sobre o tom ou estilo? (Opcional)</h3>
+                <textarea id="observacoesFinais" placeholder="Ex: Quero que seja mais emocionante, menos melancólica..." maxlength="200" oninput="updateAlterarCharCount('observacoesFinais', 'count3')"></textarea>
+                <div class="char-count"><span id="count3">0</span>/200</div>
+            </div>
+            <div class="alterar-buttons">
+                <button class="btn-alterar-cancel" onclick="fecharAlterarModalCancelar()">Cancelar</button>
+                <button class="btn-alterar-submit" id="btnSubmitAlteracao" onclick="submitAlteracao()">Enviar Alterações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE EDIÇÃO DE RASCUNHO -->
+    <div class="edit-draft-modal" id="editDraftModal">
+        <div class="edit-draft-content">
+            <div class="edit-draft-header">
+                <div>
+                    <h2>Editar Rascunho</h2>
+                    <div class="edit-draft-header-info" id="editDraftHeaderInfo">Carregando...</div>
+                </div>
+                <button class="edit-draft-close" onclick="closeEditDraftModal()"></button>
+            </div>
+            <div id="editDraftLoading" class="edit-draft-loading">Carregando rascunho...</div>
+            <form id="editDraftForm" style="display: none;"></form>
+        </div>
+    </div>
+
+    <aside class="sidebar">
+        <div class="logo-container">
+            <img src="https://i.ibb.co/wFFzDMy9/tunecraft-logo-transparente.png" alt="TuneCraft" style="height: 50px;">
+        </div>
+        <nav style="flex: 1;">
+            <div class="menu-item active" onclick="showSection('drafts', this)">
+                <img class="menu-icon" src="assets/icons/drafts.png" alt="">
+                <span>Meus Rascunhos</span>
+            </div>
+            <div class="menu-item" onclick="showSection('pending', this)">
+                <img class="menu-icon" src="assets/icons/approve.png" alt="">
+                <span>Aprovar Letra</span>
+            </div>
+            <div class="menu-item" onclick="showSection('received', this)">
+                <img class="menu-icon" src="assets/icons/music.png" alt="">
+                <span>Músicas</span>
+            </div>
+        </nav>
+        <button class="new-music-btn" onclick="openChat()">Nova Música</button>
+    </aside>
+
+    <main class="main-content">
+        <div class="header">
+            <h2 id="pageTitle">Meus Rascunhos</h2>
+            <div class="user-profile">
+                <span id="userName">Usuário</span>
+                <button class="avatar avatar-btn" onclick="openProfile()" aria-label="Minha Conta" title="Minha Conta">U</button>
+                <button onclick="logout()" style="background: none; border: none; color: #ef4444; cursor: pointer; font-size: 0.9rem; margin-left: 10px;">Sair</button>
+            </div>
+        </div>
+
+        <!-- SECTIONS -->
+        <div id="drafts" class="section active"></div>
+        <div id="pending" class="section"></div>
+        <div id="received" class="section">
+            <div id="received-list"></div>
+        </div>
+
+        <div id="profile" class="section">
+            <h2>Meus Dados</h2>
+            <div class="card">
+                <div class="profile-form">
+                    <label>Nome Completo</label>
+                    <input type="text" id="profName">
+
+                    <label>Email</label>
+                    <input type="email" id="profEmail" readonly style="background: #f1f5f9; color: #64748b;">
+
+                    <label>Nova Senha (deixe em branco para manter)</label>
+                    <input type="password" id="profPass" placeholder="">
+
+                    <button class="btn-save-profile" onclick="saveProfile()">Salvar Alterações</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast de notificações -->
+    <div class="toast-message" id="toastMessage"></div>
+
+    <!-- NOVO Config Global -->
+    <script src="config.js"></script>
+    <script src="form_options.js"></script>
+
+    <!-- Chat JS agora sem redeclaração -->
+    <script src="chat.js"></script>
+    <script src="chat_themes_full.js"></script>
+
+    <script>
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        let userData = JSON.parse(localStorage.getItem('tuneCraftUser')) || { name: 'Visitante', email: '', userid: null, orders: [] };
+        let currentAlterandoId = null;
+        let editDraftCurrentPedidoId = null;
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toastMessage');
+            toast.innerText = message;
+            toast.className = `toast-message ${type}`;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 4000);
+        }
+
+        function normalizeStatus(s) {
+            const v = s.toLowerCase().replace(/[_-]/g, '');
+            if (v === 'draft') return 'draft';
+            if (v === 'pendingapproval' || v === 'pendingapproval' || v === 'waitinguserapproval' || v === 'waitinguserapproval') return 'pending_approval';
+            if (v === 'aguardandoaprovacao' || v === 'aguardandoaprovacao') return 'aguardando_aprovacao';
+            if (v === 'production' || v === 'inproduction' || v === 'generatingaudio' || v === 'generatingaudio') return 'production';
+            if (v === 'completed' || v === 'done' || v === 'received') return 'completed';
+            return 'pending_approval';
+        }
+
+        function escapeHtml(str) {
+            return (str ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        function extractSummaryFromPayload(payload) {
+            const answers = payload.answers;
+            const asked = payload.asked;
+            const theme = answers.ai_metadata?.themeId ?? 'indefinido';
+            const genre = answers.musicStyle?.primaryGenre ?? 'indefinido';
+
+            // Usar FORMOPTIONS vem de formoptions.js
+            // Mapear tema usando FORMOPTIONS.themes
+            const themeOption = FORMOPTIONS.themes.find(t => t.value === theme);
+            const themeLabel = themeOption ? themeOption.label : 'Indefinido';
+
+            // Mapear gênero usando FORMOPTIONS.genres
+            const genreOption = FORMOPTIONS.genres.find(g => g.value === genre);
+            const genreLabel = genreOption ? genreOption.label : 'Não definido';
+
+            // Obter primeira linha da mensagem principal
+            const messagePreview = answers.lyricDetails?.mainMessage ? answers.lyricDetails.mainMessage.substring(0, 70) + '...' : 'Sem mensagem';
+
+            return {
+                recipient: themeLabel,
+                'Tema com emoji': genre,
+                genreLabel: genreLabel,
+                'Gênero com emoji': messagePreview,
+                message: asked.length,
+                'Préroa da mensagem': asked.length,
+                askedcount: `${asked.length} respondidas`
+            };
+        }
+
+        async function getSessionOrRedirect() {
+            const { data, error } = await sb.auth.getSession();
+            if (error) console.warn('getSession error:', error);
+            const session = data?.session;
+            if (!session?.access_token || !session?.user?.id) {
+                window.location.href = 'login.html';
+                return null;
+            }
+            return session;
+        }
+
+        async function loadOrdersFromSupabase() {
+            const { data, error } = await sb
+                .from('musicas_pedidos')
+                .select('id,title,lyrics,status,created_at,audio_urls,versao_original,versao_modificada,versao_aprovada,alteracao_usada,versao_aprovada_tipo,alteracao_solicitada,payload')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error('Erro sb.from("musicas_pedidos"):', error);
+                return;
+            }
+
+            return data.map(r => {
+                let audioUrls = r.audio_urls;
+                if (Array.isArray(audioUrls) && audioUrls.length > 0 && typeof audioUrls[0] === 'string') {
+                    try {
+                        audioUrls = audioUrls.map(url => JSON.parse(url));
+                    } catch (e) {
+                        console.error('Erro ao fazer parse de audio_urls:', e);
+                    }
+                }
+
+                return {
+                    id: r.id,
+                    title: r.title ?? 'Sem título',
+                    lyrics: r.lyrics,
+                    status: normalizeStatus(r.status),
+                    created_at: r.created_at,
+                    audio_urls: audioUrls,
+                    versao_original: r.versao_original,
+                    versao_modificada: r.versao_modificada,
+                    versao_aprovada: r.versao_aprovada,
+                    alteracao_usada: r.alteracao_usada,
+                    versao_aprovada_tipo: r.versao_aprovada_tipo,
+                    alteracao_solicitada: r.alteracao_solicitada,
+                    payload: r.payload
+                };
+            });
+        }
+
+        async function initDashboard() {
+            const session = await getSessionOrRedirect();
+            if (!session) return;
+
+            const fullName = session.user.user_metadata?.fullname;
+            userData.name = fullName ?? 'Usuário';
+            userData.email = session.user.email;
+            userData.email = userData.email;
+            userData.userid = session.user.id;
+
+            const orders = await loadOrdersFromSupabase();
+            userData.orders = orders;
+
+            localStorage.setItem('tuneCraftUser', JSON.stringify(userData));
+
+            document.getElementById('userName').innerText = userData.name.split(' ')[0];
+            document.querySelector('.avatar').innerText = userData.name.charAt(0);
+
+            document.getElementById('profName').value = userData.name;
+            document.getElementById('profEmail').value = userData.email;
+
+            renderSections();
+        }
+
+        initDashboard();
+
+        function showSection(id, element) {
+            if (element) {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                element.classList.add('active');
+            }
+            const titles = {
+                drafts: 'Meus Rascunhos',
+                pending: 'Aprovar Letra',
+                received: 'Músicas',
+                profile: 'Minha Conta'
+            };
+            document.getElementById('pageTitle').innerText = titles[id] ?? 'Painel';
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function openProfile() {
+            showSection('profile', null);
+        }
+
+        function openLyricsModal(text) {
+            const modal = document.getElementById('lyricsModal');
+            const box = document.getElementById('lyricsModalText');
+            box.value = text;
+            modal.classList.add('active');
+        }
+
+        function closeLyricsModal() {
+            document.getElementById('lyricsModal').classList.remove('active');
+        }
+
+        async function copyLyrics() {
+            const text = document.getElementById('lyricsModalText').value;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Letra copiada!', 'success');
+            } catch (e) {
+                // fallback
+                document.getElementById('lyricsModalText').select();
+                document.execCommand('copy');
+                showToast('Letra copiada!', 'success');
+            }
+        }
+
+        function renderSections() {
+            const draftsContainer = document.getElementById('drafts');
+            const pendingContainer = document.getElementById('pending');
+            const receivedContainer = document.getElementById('received-list');
+
+            draftsContainer.innerHTML = '';
+            pendingContainer.innerHTML = '';
+            receivedContainer.innerHTML = '';
+
+            let hasDrafts = false;
+            let hasPending = false;
+            let hasReceived = false;
+
+            if (userData.orders && userData.orders.length > 0) {
+                userData.orders.forEach(order => {
+                    const title = escapeHtml(order.title);
+                    const lyrics = escapeHtml(order.lyrics);
+
+                    if (order.status === 'draft') {
+                        hasDrafts = true;
+                        const summary = extractSummaryFromPayload(order.payload);
+                        draftsContainer.innerHTML += `
+                            <div class="card draft-card">
+                                <div class="card-header">
+                                    <h3>${summary.recipient}</h3>
+                                    <span class="status-badge status-draft">Rascunho</span>
+                                </div>
+                                <div class="draft-summary">
+                                    <p><strong>Tema</strong> ${summary.recipient}</p>
+                                    <p><strong>Gênero</strong> ${summary.genreLabel}</p>
+                                    <p><strong>Perguntas</strong> ${summary.askedcount} respondidas</p>
+                                    <p><strong>Descrição</strong> ${summary.message}</p>
+                                </div>
+                                <div class="action-row">
+                                    <button class="btn btn-revise" onclick="editarDraft('${order.id}')">Editar Formulário</button>
+                                    <button class="btn btn-approve" onclick="irParaCheckout('${order.id}')">Pagar e Gerar Letra - R 49,90</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (order.status === 'pending_approval' && !order.versao_modificada) {
+                        hasPending = true;
+                        const podeAlterar = !order.alteracao_usada;
+                        pendingContainer.innerHTML = `
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>${title}</h3>
+                                    <span class="status-badge status-pending">Aguardando Aprovação</span>
+                                </div>
+                                <p style="font-size:0.9rem;color:#64748b;">Leia a letra gerada abaixo.</p>
+                                <div class="lyrics-box">${lyrics}</div>
+                                <div class="action-row">
+                                    <button class="btn btn-revise" onclick="abrirModalAlteracao('${order.id}')" ${!podeAlterar ? 'disabled' : ''} title="${podeAlterar ? 'Alteração já foi usada' : ''}">
+                                        ${podeAlterar ? 'Solicitar Alteração' : '1x Alteração Usada'}
+                                    </button>
+                                    <button class="btn btn-approve" id="btn-${order.id}" onclick="aprovarLetraOriginal('${order.id}')">Aprovar e Gerar Áudio</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (order.status === 'aguardando_aprovacao' && order.versao_modificada) {
+                        hasPending = true;
+                        const versaoOriginal = order.versao_original.customerlyrics;
+                        const versaoModificada = order.versao_modificada;
+                        pendingContainer.innerHTML += `
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>${title}</h3>
+                                    <span class="status-badge status-awaiting">Escolha uma Versão</span>
+                                </div>
+                                <p style="font-size:0.9rem;color:#64748b; margin-bottom: 15px;">Compare as duas versões e escolha sua favorita</p>
+                                ${versaoModificada.changelog ? `<div class="version-changelog"><strong>O que foi alterado</strong><br>${escapeHtml(versaoModificada.changelog)}</div>` : ''}
+                                <div class="comparison-container">
+                                    <div class="version-card">
+                                        <h4>Versão Original</h4>
+                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(versaoOriginal ?? versaoOriginal.lyrics)}</div>
+                                        <button class="btn btn-select" onclick="aprovarVersao('${order.id}', 'original')">Escolher Esta</button>
+                                    </div>
+                                    <div class="version-card">
+                                        <h4>Versão Modificada</h4>
+                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(versaoModificada.customerlyrics)}</div>
+                                        <button class="btn btn-select" onclick="aprovarVersao('${order.id}', 'modificada')">Escolher Esta</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    } else if (order.status === 'production') {
+                        hasReceived = true;
+                        receivedContainer.innerHTML += `
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>${title}</h3>
+                                    <span class="status-badge status-production">Em Produção</span>
+                                </div>
+                                <p style="color:#cbd5e1;">Estamos gerando seu áudio. Isso pode levar alguns minutos.</p>
+                                <div class="action-row">
+                                    <button class="btn btn-revise" onclick="openLyricsModal('${lyrics.replaceAll("'", "\\'")}')">Ver letra</button>
+                                </div>
+                            </div>
+                        `;
+                    } else if (order.status === 'completed') {
+                        hasReceived = true;
+                        const urls = Array.isArray(order.audio_urls) ? order.audio_urls : [];
+                        receivedContainer.innerHTML += `
+                            <div class="card">
+                                <div class="card-header">
+                                    <h3>${title}</h3>
+                                    <span class="status-badge status-completed">Pronta</span>
+                                </div>
+                                <div class="action-row" style="margin-bottom:12px;">
+                                    <button class="btn btn-revise" onclick="openLyricsModal('${lyrics.replaceAll("'", "\\'")}')">Letra</button>
+                                </div>
+                                ${urls.length === 2 ? `
+                                <div style="margin-top:6px;">
+                                    <div class="tc-player" data-audiourls="${urls[0].audio_url}" data-title="${title} - Minha música - Versão A">
+                                        <button class="tc-btn play" type="button" aria-label="Play/Pause"></button>
+                                        <div class="tc-main">
+                                            <div class="tc-top">
+                                                <div class="tc-title">Versão A</div>
+                                                <div class="tc-time"><span class="cur">0:00</span> / <span class="dur">0:00</span></div>
+                                            </div>
+                                            <div class="tc-bar" role="slider" aria-label="Progresso">
+                                                <div class="tc-progress"></div>
+                                                <div class="tc-dot"></div>
+                                            </div>
+                                        </div>
+                                        <div class="tc-actions">
+                                            <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
+                                        </div>
+                                        <!-- DOWNLOAD FORADO no abre outra aba -->
+                                        <button class="tc-mini" type="button" onclick="downloadAudio('${urls[0].audio_url}', '${urls[0]}', 'musica-versao-a')" title="Baixar"></button>
+                                        <!-- COMPARTILHAR nativo fallback WhatsApp -->
+                                        <button class="tc-mini" type="button" onclick="shareNative('${urls[0].audio_url}', '${urls[0]}', 'Minha música - Versão A')" title="Compartilhar"></button>
+                                        <audio preload="metadata" style="display:none;"></audio>
+                                    </div>
+                                    <div style="height:10px;"></div>
+                                    <div class="tc-player" data-audiourls="${urls[1].audio_url}" data-title="${title} - Minha música - Versão B">
+                                        <button class="tc-btn play" type="button" aria-label="Play/Pause"></button>
+                                        <div class="tc-main">
+                                            <div class="tc-top">
+                                                <div class="tc-title">Versão B</div>
+                                                <div class="tc-time"><span class="cur">0:00</span> / <span class="dur">0:00</span></div>
+                                            </div>
+                                            <div class="tc-bar" role="slider" aria-label="Progresso">
+                                                <div class="tc-progress"></div>
+                                                <div class="tc-dot"></div>
+                                            </div>
+                                        </div>
+                                        <div class="tc-actions">
+                                            <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
+                                        </div>
+                                        <!-- DOWNLOAD FORADO -->
+                                        <button class="tc-mini" type="button" onclick="downloadAudio('${urls[1].audio_url}', '${urls[1]}', 'musica-versao-b')" title="Baixar"></button>
+                                        <!-- COMPARTILHAR -->
+                                        <button class="tc-mini" type="button" onclick="shareNative('${urls[1].audio_url}', '${urls[1]}', 'Minha música - Versão B')" title="Compartilhar"></button>
+                                        <audio preload="metadata" style="display:none;"></audio>
+                                    </div>
+                                </div>
+                                ` : urls.length === 1 ? `
+                                <div style="margin-top:6px;">
+                                    <div class="tc-player" data-audiourls="${urls[0].audio_url}">
+                                        <button class="tc-btn play" type="button" aria-label="Play/Pause"></button>
+                                        <div class="tc-main">
+                                            <div class="tc-top">
+                                                <div class="tc-title">Áudio</div>
+                                                <div class="tc-time"><span class="cur">0:00</span> / <span class="dur">0:00</span></div>
+                                            </div>
+                                            <div class="tc-bar" role="slider" aria-label="Progresso">
+                                                <div class="tc-progress"></div>
+                                                <div class="tc-dot"></div>
+                                            </div>
+                                        </div>
+                                        <div class="tc-actions">
+                                            <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
+                                        </div>
+                                        <a class="tc-mini" href="${urls[0].audio_url}" download title="Baixar"></a>
+                                        <audio preload="metadata" style="display:none;"></audio>
+                                    </div>
+                                    <div style="height:10px;"></div>
+                                    <!-- mantém também o botão de download grande, se você quiser -->
+                                    <a class="btn btn-download" href="${urls[0].audio_url}" download>Baixar</a>
+                                </div>
+                                ` : ''}
+                                <p>Sua música foi finalizada e está sendo preparada para audio.</p>
+                            </div>
+                        `;
+                    }
+                });
+            }
+
+            if (!hasDrafts) {
+                draftsContainer.innerHTML = `
+                    <div class="tc-empty">
+                        <div class="tc-empty-card">
+                            <div class="tc-empty-logo">
+                                <img src="images/diamante.png" alt="TuneCraft">
+                            </div>
+                            <div class="tc-empty-title">Toda música começa com uma história</div>
+                            <div class="tc-empty-sub">Crie sua próxima agora a gente transforma em canção.</div>
+                            <button class="tc-empty-cta" onclick="openChat()">Criar Nova Música</button>
+                            <div class="tc-empty-hint">Dica: quanto mais detalhes, mais única fica a letra.</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (!hasPending) {
+                pendingContainer.innerHTML = `
+                    <div class="tc-empty">
+                        <div class="tc-empty-card">
+                            <div class="tc-empty-logo">
+                                <img src="images/diamante.png" alt="TuneCraft">
+                            </div>
+                            <div class="tc-empty-title">Tudo em dia</div>
+                            <div class="tc-empty-sub">Sem letras pendentes no momento. Quer criar outra música?</div>
+                            <button class="tc-empty-cta" onclick="openChat()">Criar Nova Música</button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (!hasReceived) {
+                receivedContainer.innerHTML = `
+                    <div class="empty-state" style="padding: 20px;">
+                        <p>Sem músicas prontas no momento.</p>
+                    </div>
+                `;
+            }
+        }
+
+        /* ALTERAÇÃO 4: FUNÇÃO EDITARDRAFT MODIFICADA */
+        function editarDraft(pedidoId) {
+            console.log('Abrindo editor para', pedidoId);
+            // Abre o modal
+            openEditDraftModal(pedidoId);
+        }
+
+        async function irParaCheckout(pedidoId) {
+            try {
+                localStorage.setItem('tuneCraftpendingOrderId', pedidoId);
+                localStorage.setItem('tuneCraftcheckoutEmail', userData.email);
+                localStorage.setItem('tuneCraftcheckoutName', userData.name);
+                console.log('Redirecionando para checkout', pedidoId);
+                showToast('Redirecionando para checkout...', 'info');
+                setTimeout(() => window.location.href = 'checkout.html', 500);
+            } catch (error) {
+                console.error('Erro ao redirecionar', error);
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+        }
+
+        function abrirModalAlteracao(pedidoId) {
+            currentAlterandoId = pedidoId;
+            document.getElementById('alterarModal').classList.add('active');
+            document.getElementById('mudancasDesejadas').value = '';
+            document.getElementById('manterElementos').value = '';
+            document.getElementById('observacoesFinais').value = '';
+            document.getElementById('count1').innerText = '0';
+            document.getElementById('count2').innerText = '0';
+            document.getElementById('count3').innerText = '0';
+        }
+
+        function fecharAlterarModal() {
+            document.getElementById('alterarModal').classList.remove('active');
+            currentAlterandoId = null;
+        }
+
+        function updateAlterarCharCount(fieldId, countId) {
+            const field = document.getElementById(fieldId);
+            const count = field.value.length;
+            document.getElementById(countId).innerText = count;
+        }
+
+        async function submitAlteracao() {
+            const mudancas = document.getElementById('mudancasDesejadas').value.trim();
+            const manter = document.getElementById('manterElementos').value.trim();
+            const obs = document.getElementById('observacoesFinais').value.trim();
+
+            if (mudancas.length < 20) {
+                showToast('Por favor, descreva as mudanças com pelo menos 20 caracteres', 'error');
+                return;
+            }
+
+            if (manter.length < 10) {
+                showToast('Por favor, especifique o que deve ser mantido (mínimo 10 caracteres)', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btnSubmitAlteracao');
+            btn.disabled = true;
+            btn.innerText = 'Processando...';
+
+            const sugestoes = `MUDANÇAS DESEJADAS:\n${mudancas}\n\nELEMENTOS QUE DEVEM PERMANECER:\n${manter}${obs ? `\n\nOBSERVAÇÕES ADICIONAIS:\n${obs}` : ''}`.trim();
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}functions/v1/alterar-letra`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pedidoId: currentAlterandoId, sugestoes })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) throw new Error(result.error || 'Erro ao processar alterações');
+
+                showToast('Versão modificada criada! Compare as versões.', 'success');
+                fecharAlterarModal();
+
+                userData.orders = await loadOrdersFromSupabase();
+                localStorage.setItem('tuneCraftUser', JSON.stringify(userData));
+                renderSections();
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, 'error');
+            }
+
+            btn.disabled = false;
+            btn.innerText = 'Enviar Alterações';
+        }
+
+        async function aprovarLetraOriginal(pedidoId) {
+            try {
+                console.log('Aprovando letra original e gerando áudio para', pedidoId);
+
+                if (!pedidoId) {
+                    showToast('Erro: ID do pedido não encontrado', 'error');
+                    return;
+                }
+
+                /* PASSO 1: Atualizar versão_escolhida no banco */
+                console.log('PASSO 1: Marcando versão como escolhida...');
+                const { error: updateErr } = await sb
+                    .from('musicas_pedidos')
+                    .update({ versao_escolhida: 'original', versao_aprovada_tipo: 'original' })
+                    .eq('id', pedidoId);
+
+                if (updateErr) {
+                    console.error('Erro ao marcar versão:', updateErr);
+                    showToast(`Erro ao salvar: ${updateErr.message}`, 'error');
+                    return;
+                }
+
+                console.log('Versão marcada como original');
+
+                /* PASSO 2: Gerar áudio chamando generate-audio */
+                console.log('PASSO 2: Chamando generate-audio...');
+
+                const btn = document.getElementById(`btn-${pedidoId}`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Gerando áudio...';
+                }
+                showToast('Gerando áudio da música...', 'info');
+
+                /* CERTIFIQUE-SE DE CHAMAR COM JSON VÁLIDO */
+                const response = await fetch(`https://miupzfchvfbqbznfhvix.supabase.co/functions/v1/generate-audio`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pedido_id: pedidoId, KEY: 'CORRETO!' })
+                });
+
+                console.log('Status da resposta:', response.status);
+
+                /* VERIFICAR RESPOSTA */
+                if (!response.ok) {
+                    const errorText = await response.text().catch(() => 'Erro desconhecido');
+                    console.error('Erro de resposta:', response.status, errorText);
+                    showToast(`Erro ao gerar áudio (${response.status})`, 'error');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Aprovar e Gerar Áudio';
+                    }
+                    return;
+                }
+
+                const result = await response.json().catch(() => ({}));
+                console.log('Resposta da geração:', result);
+
+                /* SUCESSO */
+                showToast('Áudio enviado para produção! Você receberá em breve.', 'success');
+                setTimeout(() => location.reload(), 2000);
+            } catch (error) {
+                console.error('ERRO em aprovarLetraOriginal:', error);
+                showToast(error.message, 'error');
+                const btn = document.getElementById(`btn-${pedidoId}`);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = 'Aprovar e Gerar Áudio';
+                }
+            }
+        }
+
+        async function aprovarVersao(pedidoId, tipo) {
+            try {
+                console.log('Aprovando versão', tipo, 'para', pedidoId);
+
+                if (!pedidoId || !tipo) {
+                    showToast('Erro: Dados inválidos', 'error');
+                    return;
+                }
+
+                const tipoNormalizado = tipo.toLowerCase();
+                if (!['original', 'modificada'].includes(tipoNormalizado)) {
+                    showToast('Erro: Tipo de versão inválido', 'error');
+                    return;
+                }
+
+                /* PASSO 1: Atualizar versão_escolhida */
+                console.log('PASSO 1: Marcando versão escolhida...');
+                const { error: updateErr } = await sb
+                    .from('musicas_pedidos')
+                    .update({ versao_escolhida: tipoNormalizado, versao_aprovada_tipo: tipoNormalizado, status: 'production' })
+                    .eq('id', pedidoId);
+
+                if (updateErr) {
+                    console.error('Erro ao marcar versão:', updateErr);
+                    showToast(`Erro ao salvar: ${updateErr.message}`, 'error');
+                    return;
+                }
+
+                console.log('Versão marcada como aprovada');
+
+                /* PASSO 2: Gerar áudio */
+                console.log('PASSO 2: Gerando áudio...');
+                showToast('Gerando áudio da música...', 'info');
+
+                const response = await fetch(`https://miupzfchvfbqbznfhvix.supabase.co/functions/v1/generate-audio`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pedido_id: pedidoId })
+                });
+
+                console.log('Status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text().catch(() => 'Erro desconhecido');
+                    console.error('Erro:', response.status, errorText);
+                    showToast(`Erro ao gerar áudio (${response.status})`, 'error');
+                    return;
+                }
+
+                const result = await response.json().catch(() => ({}));
+                console.log('Áudio enviado:', result);
+
+                showToast('Música em produção! Você receberá em breve.', 'success');
+                setTimeout(() => location.reload(), 2000);
+            } catch (error) {
+                console.error('ERRO em aprovarVersao:', error);
+                showToast(error.message, 'error');
+            }
+        }
+
+        /* VERIFICAÇÃO AO CARREGAR */
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Funções de aprovação carregadas');
+            console.log('URL generate-audio configurada como');
+            console.log('https://miupzfchvfbqbznfhvix.supabase.co/functions/v1/generate-audio');
+        });
+
+        function saveProfile() {
+            const newName = document.getElementById('profName').value;
+            const newPass = document.getElementById('profPass').value;
+
+            userData.name = newName;
+            if (newPass) userData.password = newPass;
+
+            localStorage.setItem('tuneCraftUser', JSON.stringify(userData));
+            document.getElementById('userName').innerText = newName.split(' ')[0];
+            document.querySelector('.avatar').innerText = newName.charAt(0);
+
+            showToast('Perfil atualizado com sucesso!', 'success');
+        }
+
+        function openChat() {
+            // se tiver chat.js configurado, executar de lá
+        }
+    </script>
+
+    <!-- React LyricPreview -->
+    <script type="text/babel">
+        const confidenceChecklist = [
+            {icon: '🙏', label: 'Tema', value: 'Oração de gratidão', status: '✓ Perfeito'},
+            {icon: '🎤', label: 'Estilo', value: 'MPB moderno, dueto', status: '✓ Exato'},
+            {icon: '💫', label: 'Emoção', value: 'Paz', status: '✓ Capturado'},
+            {icon: '🚫', label: 'Evita', value: 'Reclamações', status: '✓ Respeitado'}
+        ];
+
+        function LyricPreview({title, lyrics, hook, highlights, orderId, podeAlterar}) {
+            return (
+                <div className="lyric-preview-container">
+                    <div className="summary-card">
+                        <div className="success-badge">✅ Sua letra está pronta!</div>
+                        <h1 className="song-title">{title}</h1>
+                        <div className="confidence-checklist">
+                            <h3 className="checklist-title">Verificamos tudo com suas respostas:</h3>
+                            <div className="checklist-items">
+                                {confidenceChecklist.map((item, i) => (
+                                    <div key={i} className="checklist-item">
+                                        <span className="checklist-icon">{item.icon}</span>
+                                        <div style={{flex: 1}}>
+                                            <div className="checklist-label">{item.label}</div>
+                                            <div className="checklist-value">{item.value}</div>
+                                        </div>
+                                        <span className="checklist-status">{item.status}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="hook-highlight">
+                            <span>🎶 Refrão Principal:</span>
+                            <em>"{hook}"</em>
+                        </div>
+                    </div>
+
+                    {/* ALTERAÇÃO 1: LETRA VISÍVEL SEM BOTÃO */}
+                    <div className="lyrics-box" style={{margin: '20px 0'}}>
+                        {lyrics}
+                    </div>
+
+                    <div className="details-card">
+                        <h3 className="details-title">💡 Como usamos o que você contou:</h3>
+                        <ul className="highlights-list">
+                            {highlights.slice(0, 4).map((detail, i) => (
+                                <li key={i} className="highlight-item">
+                                    <span className="highlight-icon">✓</span>
+                                    {detail}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="action-section">
+                        <div className="security-message">
+                            <span className="security-icon">🛡️</span>
+                            <span>Se algo não estiver perfeito, peça 1 ajuste gratuito. Você sempre poderá ouvir o áudio antes de compartilhar.</span>
+                        </div>
+                        <div className="action-buttons">
+                            {/* ALTERAÇÃO 2: REMOVIDO BOTÃO "OUVIR PREVIEW" */}
+                            {/* ALTERAÇÃO 3: BOTÕES FUNCIONAIS COM FUNÇÕES CORRETAS */}
+                            <button 
+                                className="lp-btn lp-btn-revise" 
+                                onclick={() => abrirModalAlteracao(orderId)}
+                                disabled={!podeAlterar}
+                                title={podeAlterar ? 'Solicitar alteração' : 'Alteração já foi usada'}
+                            >
+                                ✏️ {podeAlterar ? 'Solicitar Alteração' : 'Alteração Usada'}
+                            </button>
+                            <button className="lp-btn lp-btn-success" onclick={() => aprovarLetraOriginal(orderId)}>
+                                🎵 Gerar Música
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        function renderLyricPreview(order) {
+            const pendingContainer = document.getElementById('pending');
+            const podeAlterar = !order.alteracao_usada;
+            
+            const root = ReactDOM.createRoot(pendingContainer);
+            root.render(
+                <div className="card" style={{minHeight: 'auto'}}>
+                    <LyricPreview
+                        title={order.title}
+                        lyrics={order.lyrics}
+                        hook="Refrão principal gerado pela IA"
+                        highlights={[
+                            'Tema centrado em oração e fase boa',
+                            'Estilo MPB moderno com dueto',
+                            'Emoção de paz e contemplação',
+                            'Sem reclamações ou tristeza'
+                        ]}
+                        orderId={order.id}
+                        podeAlterar={podeAlterar}
+                    />
+                </div>
+            );
+        }
+    </script>
+</body>
+</html>

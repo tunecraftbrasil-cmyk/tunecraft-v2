@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TuneCraft - Editor de Rascunho</title>
+
+  <style>
+    /* MODAL */
+    .edit-draft-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 10000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .edit-draft-modal.active {
+      display: flex;
+    }
+
+    .edit-draft-content {
+      background: white;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 30px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: slideInUp 0.3s ease;
+    }
+
+    @keyframes slideInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .edit-draft-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .edit-draft-header h2 {
+      color: #1e293b;
+      font-size: 24px;
+      margin: 0;
+    }
+
+    .edit-draft-header-info {
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+
+    .edit-draft-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      color: #64748b;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: 0.2s;
+    }
+
+    .edit-draft-close:hover {
+      color: #1e293b;
+    }
+
+    .edit-draft-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-top: 25px;
+      margin-bottom: 15px;
+      padding: 10px 0;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .edit-draft-form-group {
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 4px solid #00d9ff;
+    }
+
+    .edit-draft-form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #1e293b;
+      font-size: 0.9rem;
+    }
+
+    .edit-draft-form-group .field-name {
+      font-size: 0.75rem;
+      color: #94a3b8;
+      margin-bottom: 5px;
+      font-family: monospace;
+    }
+
+    .edit-draft-form-group input,
+    .edit-draft-form-group textarea,
+    .edit-draft-form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: 0.2s;
+    }
+
+    .edit-draft-form-group input:focus,
+    .edit-draft-form-group textarea:focus,
+    .edit-draft-form-group select:focus {
+      outline: none;
+      border-color: #00d9ff;
+      box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+    }
+
+    .edit-draft-form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .edit-draft-references {
+      display: grid;
+      gap: 10px;
+    }
+
+    .edit-draft-reference-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .edit-draft-reference-item input {
+      padding: 10px;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    .edit-draft-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+      padding-top: 25px;
+      border-top: 2px solid #e2e8f0;
+      justify-content: flex-end;
+    }
+
+    .edit-draft-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      font-size: 14px;
+    }
+
+    .edit-draft-btn-cancel {
+      background: white;
+      border: 2px solid #cbd5e1;
+      color: #64748b;
+    }
+
+    .edit-draft-btn-cancel:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    .edit-draft-btn-save {
+      background: linear-gradient(135deg, #00d9ff, #6366f1);
+      color: white;
+    }
+
+    .edit-draft-btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3);
+    }
+
+    .edit-draft-btn-save:disabled {
+      background: #cbd5e1;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .edit-draft-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      font-size: 16px;
+      color: #94a3b8;
+    }
+
+    .edit-draft-toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 10001;
+      animation: slideInRight 0.3s;
+    }
+
+    .edit-draft-toast.error {
+      background: #ef4444;
+    }
+
+    .edit-draft-toast.info {
+      background: #3b82f6;
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(400px);
+      }
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .edit-draft-content {
+        padding: 20px;
+      }
+
+      .edit-draft-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      .edit-draft-actions {
+        flex-direction: column;
+      }
+
+      .edit-draft-btn {
+        width: 100%;
+      }
+
+      .edit-draft-reference-item {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL DE EDIÇÃO -->
+  <div class="edit-draft-modal" id="editDraftModal">
+    <div class="edit-draft-content">
+      <div class="edit-draft-header">
+        <div>
+          <h2>✏️ Editar Rascunho</h2>
+          <div class="edit-draft-header-info" id="editDraftHeaderInfo">Carregando...</div>
+        </div>
+        <button class="edit-draft-close" onclick="closeEditDraftModal()">×</button>
+      </div>
+
+      <div id="editDraftLoading" class="edit-draft-loading">
+        ⏳ Carregando rascunho...
+      </div>
+
+      <form id="editDraftForm" style="display: none;">
+        <!-- DESTINATÁRIO -->
+        <div class="edit-draft-section-title">👤 DESTINATÁRIO</div>
+
+        <div class="edit-draft-form-group">
+          <label>Relacionamento</label>
+          <div class="field-name">step1</div>
+          <select id="editDraft_step1">
+            <option value="">-- Selecionar --</option>
+            <option value="romantic">Namorada/Namorado 💕</option>
+            <option value="parent">Mãe/Pai 👨‍👩‍👧</option>
+            <option value="child">Filho/Filha 👶</option>
+            <option value="grandparent">Avó/Avô 👵</option>
+            <option value="friend">Amigo/Amiga 👥</option>
+            <option value="colleague">Colega de trabalho 💼</option>
+            <option value="sibling">Irmão/Irmã 👬</option>
+            <option value="mentor">Professor/Mentora 🎓</option>
+            <option value="group">Grupo/Família 👨‍👩‍👧‍👦</option>
+            <option value="other">Outro 🎭</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group" id="editDraft_step1_5_group" style="display: none;">
+          <label>Descreva o relacionamento</label>
+          <div class="field-name">step1.5</div>
+          <textarea id="editDraft_step1_5" placeholder="Ex: Meu vizinho que é como um pai para mim..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Nome da pessoa</label>
+          <div class="field-name">step2</div>
+          <input type="text" id="editDraft_step2" placeholder="Ex: Maria" />
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Faixa etária</label>
+          <div class="field-name">step3</div>
+          <select id="editDraft_step3">
+            <option value="">-- Selecionar --</option>
+            <option value="child_12">Criança (até 12 anos)</option>
+            <option value="teen">Teen (13-19 anos)</option>
+            <option value="adult_young">Jovem adulto (20-35 anos)</option>
+            <option value="adult_middle">Adulto (36-55 anos)</option>
+            <option value="adult_senior">Senior (56+ anos)</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Personalidade</label>
+          <div class="field-name">step4</div>
+          <textarea id="editDraft_step4" placeholder="Ex: Alegre, extrovertida, adora dançar..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Características especiais (Opcional)</label>
+          <div class="field-name">step5</div>
+          <textarea id="editDraft_step5" placeholder="Ex: Faz bolos incríveis..."></textarea>
+        </div>
+
+        <!-- OCASIÃO -->
+        <div class="edit-draft-section-title">🎉 OCASIÃO</div>
+
+        <div class="edit-draft-form-group">
+          <label>Tipo de ocasião</label>
+          <div class="field-name">step6</div>
+          <select id="editDraft_step6">
+            <option value="">-- Selecionar --</option>
+            <option value="proposal">Pedido de Casamento 💍</option>
+            <option value="birthday">Aniversário 🎂</option>
+            <option value="confession">Declaração de Amor 💕</option>
+            <option value="tribute">Homenagem especial 🌹</option>
+            <option value="goodbye">Despedida/Adeus 👋</option>
+            <option value="celebration">Comemoração (formatura, promoção, etc) 🎓</option>
+            <option value="apology">Pedido de desculpas 🤝</option>
+            <option value="friendship">Comemoração de amizade 👥</option>
+            <option value="other">Outra ocasião 📅</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group" id="editDraft_step6_5_group" style="display: none;">
+          <label>Descreva a ocasião</label>
+          <div class="field-name">step6.5</div>
+          <textarea id="editDraft_step6_5" placeholder="Ex: Aposentadoria após 40 anos..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Data da ocasião (Opcional)</label>
+          <div class="field-name">step7</div>
+          <input type="date" id="editDraft_step7" />
+        </div>
+
+        <!-- ESTILO MUSICAL -->
+        <div class="edit-draft-section-title">🎵 ESTILO MUSICAL</div>
+
+        <div class="edit-draft-form-group">
+          <label>Gênero musical</label>
+          <div class="field-name">step8</div>
+          <select id="editDraft_step8">
+            <option value="">-- Selecionar --</option>
+            <option value="pop">Pop moderno</option>
+            <option value="sertanejo">Sertanejo</option>
+            <option value="rock">Rock/Rock alternativo</option>
+            <option value="rap">Rap/Trap</option>
+            <option value="samba">Samba/Pagode</option>
+            <option value="acoustic">Acústico/MPB</option>
+            <option value="electronic">Eletrônico/House</option>
+            <option value="reggae">Reggae</option>
+            <option value="funk">Funk/Dance</option>
+            <option value="forro">Forró</option>
+            <option value="gospel">Gospel/Espiritual</option>
+            <option value="other">Outro 🎶</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group" id="editDraft_step8_5_group" style="display: none;">
+          <label>Qual gênero ou mistura?</label>
+          <div class="field-name">step8.5</div>
+          <textarea id="editDraft_step8_5" placeholder="Ex: Eletrônico com influência de samba..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Tempo/ritmo</label>
+          <div class="field-name">step9</div>
+          <select id="editDraft_step9">
+            <option value="">-- Selecionar --</option>
+            <option value="slow">Lenta e contemplativa (60-80 BPM)</option>
+            <option value="moderate">Moderada e equilibrada (80-110 BPM)</option>
+            <option value="fast">Rápida e energética (110+ BPM)</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Energia da música</label>
+          <div class="field-name">step10</div>
+          <select id="editDraft_step10">
+            <option value="">-- Selecionar --</option>
+            <option value="low">Baixa (suave, intimista, relax)</option>
+            <option value="medium">Média (natural, fluida, equilibrada)</option>
+            <option value="high">Alta (impacto, poderosa, celebrativa)</option>
+          </select>
+        </div>
+
+        <!-- REFERÊNCIAS -->
+        <div class="edit-draft-section-title">🎤 REFERÊNCIAS MUSICAIS</div>
+
+        <div class="edit-draft-form-group">
+          <label>Artistas e músicas que inspiram (até 3)</label>
+          <div class="field-name">step11</div>
+          <div class="edit-draft-references" id="editDraftReferencesContainer">
+            <!-- Preenchido por JS -->
+          </div>
+        </div>
+
+        <!-- MENSAGEM -->
+        <div class="edit-draft-section-title">💖 MENSAGEM E EMOÇÃO</div>
+
+        <div class="edit-draft-form-group">
+          <label>Mensagem principal</label>
+          <div class="field-name">step12</div>
+          <textarea id="editDraft_step12" placeholder="Ex: Quero contar nossa história..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Menções específicas (Opcional)</label>
+          <div class="field-name">step13</div>
+          <textarea id="editDraft_step13" placeholder="Ex: Mencionar Dourados, viagem para o Rio..."></textarea>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Estilo de linguagem</label>
+          <div class="field-name">step14</div>
+          <select id="editDraft_step14">
+            <option value="">-- Selecionar --</option>
+            <option value="poetic">Poético e romântico (com metáforas)</option>
+            <option value="conversational">Conversacional e natural</option>
+            <option value="storytelling">Storytelling (contando uma história)</option>
+            <option value="direct">Direto e emotivo</option>
+            <option value="humorous">Bem-humorado (com humor e leveza)</option>
+          </select>
+        </div>
+
+        <!-- PRODUÇÃO -->
+        <div class="edit-draft-section-title">🎚️ PRODUÇÃO</div>
+
+        <div class="edit-draft-form-group">
+          <label>Tipo de voz</label>
+          <div class="field-name">step15</div>
+          <select id="editDraft_step15">
+            <option value="">-- Selecionar --</option>
+            <option value="female_warm">Voz feminina (suave, calorosa, emotiva)</option>
+            <option value="female_strong">Voz feminina (poderosa, energética, clara)</option>
+            <option value="male_soft">Voz masculina (suave, intimista, delicada)</option>
+            <option value="male_strong">Voz masculina (poderosa, grave, marcante)</option>
+            <option value="duo">Dueto (homem + mulher alternando)</option>
+            <option value="duo_harmony">Dueto (homem + mulher harmonizando)</option>
+          </select>
+        </div>
+
+        <div class="edit-draft-form-group">
+          <label>Estilo de produção</label>
+          <div class="field-name">step16</div>
+          <select id="editDraft_step16">
+            <option value="">-- Selecionar --</option>
+            <option value="acoustic">Acústico puro (violão, piano, natural)</option>
+            <option value="acoustic_backing">Acústico com backing</option>
+            <option value="studio_polish">Studio polish (profissional, limpo, brilhante)</option>
+            <option value="live_feel">Live feel (como se tivesse ao vivo)</option>
+            <option value="cinematic">Cinematic (épico, cinematográfico, orquestrado)</option>
+            <option value="electronic_modern">Eletrônico/Moderno</option>
+          </select>
+        </div>
+
+        <!-- BOTÕES -->
+        <div class="edit-draft-actions">
+          <button type="button" class="edit-draft-btn edit-draft-btn-cancel" onclick="closeEditDraftModal()">Cancelar</button>
+          <button type="submit" class="edit-draft-btn edit-draft-btn-save" id="editDraftSaveBtn">💾 Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="edit-draft-toast" id="editDraftToast"></div>
+
+  <script>
+    let editDraftCurrentPedidoId = null;
+
+    // ✅ Criar client Supabase se não existir
+    if (!window.sb) {
+      window.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      console.log("✅ Supabase client criado para edit-draft modal");
+    }
+
+    // ============================================
+    // ABRIR MODAL
+    // ============================================
+    function openEditDraftModal(pedidoId) {
+      editDraftCurrentPedidoId = pedidoId;
+      document.getElementById('editDraftModal').classList.add('active');
+      loadEditDraft();
+    }
+
+    // ============================================
+    // FECHAR MODAL
+    // ============================================
+    function closeEditDraftModal() {
+      document.getElementById('editDraftModal').classList.remove('active');
+      editDraftCurrentPedidoId = null;
+    }
+
+    // Fechar ao clicar fora
+    document.getElementById('editDraftModal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('editDraftModal')) {
+        closeEditDraftModal();
+      }
+    });
+
+    // Fechar com ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById('editDraftModal').classList.contains('active')) {
+        closeEditDraftModal();
+      }
+    });
+
+    // ============================================
+    // CARREGAR RASCUNHO
+    // ============================================
+    async function loadEditDraft() {
+      try {
+        console.log("🔍 Carregando rascunho:", editDraftCurrentPedidoId);
+
+        const { data, error } = await window.sb
+          .from('musicas_pedidos')
+          .select('payload, created_at')
+          .eq('id', editDraftCurrentPedidoId)
+          .single();
+
+        if (error) {
+          console.error("❌ Erro:", error);
+          showEditDraftToast("❌ Erro ao carregar rascunho", "error");
+          closeEditDraftModal();
+          return;
+        }
+
+        if (!data) {
+          showEditDraftToast("❌ Rascunho não encontrado", "error");
+          closeEditDraftModal();
+          return;
+        }
+
+        console.log("✅ Rascunho carregado");
+
+        // Preencher formulário
+        preencherEditDraftForm(data.payload);
+
+        // Atualizar header
+        const criadoEm = new Date(data.created_at).toLocaleDateString('pt-BR');
+        document.getElementById('editDraftHeaderInfo').innerHTML = `
+          Rascunho ID: <strong>${editDraftCurrentPedidoId.substring(0, 8)}...</strong> | 
+          Criado em: <strong>${criadoEm}</strong>
+        `;
+
+        // Mostrar formulário
+        document.getElementById('editDraftLoading').style.display = 'none';
+        document.getElementById('editDraftForm').style.display = 'block';
+
+      } catch (err) {
+        console.error("❌ Erro fatal:", err);
+        showEditDraftToast(`❌ Erro: ${err.message}`, "error");
+        closeEditDraftModal();
+      }
+    }
+
+    // ============================================
+    // PREENCHER FORMULÁRIO
+    // ============================================
+    function preencherEditDraftForm(payload) {
+      // Steps 1-16
+      for (let i = 1; i <= 16; i++) {
+        const key = `step${i}`;
+        const elem = document.getElementById(`editDraft_${key}`);
+        if (elem && payload[key]) {
+          elem.value = payload[key];
+        }
+      }
+
+      // Steps 1.5, 6.5, 8.5
+      if (payload.step1_5) {
+        document.getElementById('editDraft_step1_5').value = payload.step1_5;
+      }
+      if (payload.step6_5) {
+        document.getElementById('editDraft_step6_5').value = payload.step6_5;
+      }
+      if (payload.step8_5) {
+        document.getElementById('editDraft_step8_5').value = payload.step8_5;
+      }
+
+      // Step 11 (References)
+      const refsContainer = document.getElementById('editDraftReferencesContainer');
+      refsContainer.innerHTML = '';
+
+      const refs = payload.step11 || [{}, {}, {}];
+      for (let i = 0; i < 3; i++) {
+        const ref = refs[i] || {};
+        const html = `
+          <div class="edit-draft-reference-item">
+            <input type="text" id="editDraft_ref_artist_${i}" placeholder="Artista" value="${ref.artist || ''}" />
+            <input type="text" id="editDraft_ref_song_${i}" placeholder="Música" value="${ref.song || ''}" />
+          </div>
+        `;
+        refsContainer.innerHTML += html;
+      }
+
+      atualizarEditDraftCamposCondicionais();
+    }
+
+    // ============================================
+    // CAMPOS CONDICIONAIS
+    // ============================================
+    function atualizarEditDraftCamposCondicionais() {
+      const step1 = document.getElementById('editDraft_step1').value;
+      document.getElementById('editDraft_step1_5_group').style.display = step1 === 'other' ? 'block' : 'none';
+
+      const step6 = document.getElementById('editDraft_step6').value;
+      document.getElementById('editDraft_step6_5_group').style.display = step6 === 'other' ? 'block' : 'none';
+
+      const step8 = document.getElementById('editDraft_step8').value;
+      document.getElementById('editDraft_step8_5_group').style.display = step8 === 'other' ? 'block' : 'none';
+    }
+
+    document.getElementById('editDraft_step1').addEventListener('change', atualizarEditDraftCamposCondicionais);
+    document.getElementById('editDraft_step6').addEventListener('change', atualizarEditDraftCamposCondicionais);
+    document.getElementById('editDraft_step8').addEventListener('change', atualizarEditDraftCamposCondicionais);
+
+    // ============================================
+    // SALVAR
+    // ============================================
+    document.getElementById('editDraftForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      try {
+        showEditDraftToast("💾 Salvando...", "info");
+
+        const newPayload = {};
+
+        // Steps 1-16
+        for (let i = 1; i <= 16; i++) {
+          const key = `step${i}`;
+          const elem = document.getElementById(`editDraft_${key}`);
+          if (elem) {
+            const value = elem.value.trim();
+            newPayload[key] = value || undefined;
+          }
+        }
+
+        // Steps 1.5, 6.5, 8.5
+        const val1_5 = document.getElementById('editDraft_step1_5')?.value.trim();
+        if (val1_5) newPayload.step1_5 = val1_5;
+
+        const val6_5 = document.getElementById('editDraft_step6_5')?.value.trim();
+        if (val6_5) newPayload.step6_5 = val6_5;
+
+        const val8_5 = document.getElementById('editDraft_step8_5')?.value.trim();
+        if (val8_5) newPayload.step8_5 = val8_5;
+
+        // Step 11 (References)
+        const refs = [];
+        for (let i = 0; i < 3; i++) {
+          const artist = document.getElementById(`editDraft_ref_artist_${i}`).value.trim();
+          const song = document.getElementById(`editDraft_ref_song_${i}`).value.trim();
+          if (artist || song) {
+            refs.push({ artist, song });
+          }
+        }
+        if (refs.length > 0) newPayload.step11 = refs;
+
+        console.log("📦 Salvando payload:", newPayload);
+
+        // Atualizar Supabase
+        const { error } = await window.sb
+          .from('musicas_pedidos')
+          .update({
+            payload: newPayload,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', editDraftCurrentPedidoId);
+
+        if (error) {
+          console.error("❌ Erro ao atualizar:", error);
+          showEditDraftToast(`❌ Erro: ${error.message}`, "error");
+          return;
+        }
+
+        console.log("✅ Rascunho atualizado!");
+        showEditDraftToast("✅ Rascunho atualizado com sucesso!", "");
+        
+        // Fechar modal
+        setTimeout(() => {
+          closeEditDraftModal();
+          
+          // Recarregar dashboard (opcional)
+          if (window.renderSections) {
+            window.userData.orders = await loadOrdersFromSupabase();
+            localStorage.setItem("tuneCraftUser", JSON.stringify(window.userData));
+            renderSections();
+          }
+        }, 1000);
+
+      } catch (err) {
+        console.error("❌ Erro fatal:", err);
+        showEditDraftToast(`❌ Erro: ${err.message}`, "error");
+      }
+    });
+
+    // ============================================
+    // HELPERS
+    // ============================================
+    function showEditDraftToast(message, type = 'info') {
+      const toast = document.getElementById('editDraftToast');
+      toast.textContent = message;
+      toast.className = `edit-draft-toast ${type}`;
+      toast.style.display = 'block';
+
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 4000);
+    }
+  </script>
+</body>
+</html>

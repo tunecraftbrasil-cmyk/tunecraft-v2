@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Canção do Neto | TuneCraft</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@600;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* RESET & VARS */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg-cream: #FFFDF7;
+      --bg-white: #FFFFFF;
+      --primary-gold: #C5A059; /* Dourado Sóbrio */
+      --primary-dark: #8C6B28;
+      --text-main: #2D2D2D;
+      --text-soft: #555555;
+      --success: #2E7D32;
+      --surface: #F4F1EA;
+    }
+
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: #ECECEC; /* Fundo cinza fora do mobile */
+      color: var(--text-main);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* CONTAINER MOBILE-FIRST */
+    .mobile-container {
+      max-width: 480px;
+      margin: 0 auto;
+      background: var(--bg-cream);
+      min-height: 100vh;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      position: relative;
+      padding-bottom: 120px; /* Espaço maior para o Sticky Footer */
+    }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3 {
+      font-family: 'Playfair Display', serif;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+    
+    .headline {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+
+    .subhead {
+      font-size: 1.15rem;
+      color: var(--text-soft);
+      margin-bottom: 24px;
+    }
+
+    p { font-size: 1.05rem; margin-bottom: 16px; }
+
+    /* COMPONENTS */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 16px 20px;
+      background: var(--primary-gold);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 10px rgba(197, 160, 89, 0.3);
+      transition: transform 0.1s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-green { background: var(--success); box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3); }
+
+    .card {
+      background: var(--bg-white);
+      padding: 24px;
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+    }
+
+    /* HEADER */
+    header {
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      background: var(--bg-white);
+    }
+    .brand-logo { 
+      height: 40px; 
+      width: auto; 
+      display: block; 
+      margin: 0 auto; 
+    }
+
+    /* HERO */
+    .hero { padding: 32px 20px 10px; text-align: center; }
+    .hero-img { 
+      width: 100%; 
+      border-radius: 16px; 
+      margin-bottom: 24px; 
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      object-fit: cover;
+    }
+    .badge {
+      display: inline-block;
+      background: #E8F5E9;
+      color: var(--success);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .badge-gold {
+      background: #FFF8E1;
+      color: var(--primary-dark);
+      border: 1px solid #FFE082;
+    }
+
+    /* AUDIO PLAYER SIMPLIFIED */
+    .audio-sample {
+      background: #F8F8F8;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 10px;
+      border: 1px solid #ddd;
+    }
+    .play-btn {
+      width: 44px; height: 44px;
+      background: var(--primary-dark);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .track-info small { color: #888; display: block; font-size: 0.8rem; }
+    .track-info strong { font-size: 1rem; color: #333; }
+
+    /* STEPS (Timeline) */
+    .step { display: flex; gap: 16px; margin-bottom: 24px; }
+    .step-num {
+      width: 36px; height: 36px;
+      background: var(--surface);
+      color: var(--primary-dark);
+      font-weight: 800;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.1rem;
+    }
+    .step-content h3 { font-size: 1.15rem; margin-bottom: 4px; }
+    .step-content p { font-size: 0.95rem; color: var(--text-soft); margin-bottom: 0; }
+
+    /* TESTIMONIALS */
+    .review-card {
+      background: var(--bg-white);
+      padding: 20px;
+      border-radius: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #eee;
+    }
+    .stars { color: #FFC107; margin-bottom: 8px; }
+    .quote { font-style: italic; color: #444; font-size: 1rem; margin-bottom: 12px; display: block; }
+    .author { font-size: 0.9rem; font-weight: 700; color: #222; display: flex; align-items: center; gap: 8px; }
+    .author-thumb { 
+      width: 40px; 
+      height: 40px; 
+      border-radius: 50%; 
+      object-fit: cover; 
+      background: #ddd; 
+      border: 2px solid var(--surface);
+    }
+
+    /* FAQ ACCORDION */
+    details {
+      background: var(--bg-white);
+      margin-bottom: 10px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      overflow: hidden;
+    }
+    summary {
+      padding: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    summary::after { content: '+'; font-size: 1.2rem; color: var(--primary-gold); }
+    details[open] summary::after { content: '-'; }
+    details p { padding: 0 16px 16px; font-size: 0.95rem; color: var(--text-soft); border-top: 1px solid #eee; margin-top: 0; padding-top: 12px; }
+
+    /* STICKY FOOTER */
+    .sticky-footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      padding: 12px 16px 20px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-top: 1px solid #eee;
+    }
+    @media (min-width: 481px) {
+      .sticky-footer { max-width: 480px; margin: 0 auto; left: auto; right: auto; border-left: 1px solid #eee; border-right: 1px solid #eee; }
+    }
+
+    .price-tag { text-align: center; margin-bottom: 8px; }
+    .price-old { text-decoration: line-through; color: #999; font-size: 0.9rem; }
+    .price-new { color: var(--success); font-weight: 800; font-size: 1.3rem; }
+    .guarantee-text { font-size: 0.75rem; color: #777; margin-top: 8px; text-align: center; }
+
+    /* UTILS */
+    .highlight { color: var(--primary-dark); font-weight: 700; background: rgba(197, 160, 89, 0.1); padding: 0 4px; }
+  </style>
+</head>
+<body>
+
+<div class="mobile-container">
+
+  <header>
+    <img src="images/tunecraft-logo-transparente.png" alt="TuneCraft Logo" class="brand-logo">
+  </header>
+
+  <section class="hero">
+    <div class="badge">❤️ Mais de 1.200 vovós já fizeram</div>
+    <h1 class="headline">Transforme seu amor em uma música eterna</h1>
+    <p class="subhead">
+      Crie uma canção única com a história do seu neto(a).
+      Sem saber tecnologia. Você revisa a letra antes e recebe <strong>2 versões</strong> diferentes!
+    </p>
+
+    <img src="assets-grandchild/images/image1.png" alt="Avó e neto sorrindo" class="hero-img" loading="lazy">
+    
+    <div class="card" style="background: #FDFDFD; border-left: 4px solid var(--primary-gold);">
+      <p style="margin-bottom:4px; font-weight:700;">Ouça um exemplo:</p>
+      <div class="audio-sample">
+        <div class="play-btn">▶</div>
+        <div class="track-info">
+          <strong>Canção da Sofia</strong>
+          <small>Feita pela Avó Teresa</small>
+        </div>
+      </div>
+      <p style="font-size:0.85rem; color:#666; margin-top:8px;">(A sua será criada com a SUA história)</p>
+    </div>
+  </section>
+
+  <section style="padding: 20px;">
+    <h2 style="margin-bottom: 24px; text-align: center;">É muito simples de fazer</h2>
+    
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h3>Conte sua história</h3>
+        <p>Responda perguntas simples. Nome do neto, momentos especiais... tudo como uma conversa.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h3>Aprove a Letra</h3>
+        <p>Nós criamos a letra e você lê. <strong>Quer mudar uma frase?</strong> A gente muda na hora até ficar perfeita.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h3>Receba 2 Versões <span class="badge badge-gold" style="margin-left:5px; font-size:0.7rem;">Bônus</span></h3>
+        <p>A música fica pronta <strong>aqui no site</strong>. Você pode ouvir, baixar no celular e enviar no WhatsApp da família. Entregamos 2 melodias diferentes!</p>
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 30px 20px; background: var(--bg-white);">
+    <h2 style="font-size: 1.6rem; text-align: center; margin-bottom: 16px;">"O presente mais bonito que já dei"</h2>
+    
+    <div class="review-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <span class="quote">"Eu queria deixar algo pro Miguel saber o quanto a vovó ama ele. A música ficou linda, e ter duas versões foi ótimo, escolhi a mais calminha pra ele dormir."</span>
+      <div class="author">
+        <img src="assets-grandchild/images/image2.png" alt="Dona Célia" class="author-thumb">
+        Dona Célia, avó do Miguel
+      </div>
+    </div>
+
+    <div class="review-card">
+      <div class="stars">⭐⭐⭐⭐⭐</div>
+      <span class="quote">"Achei que não ia conseguir mexer, mas é só responder as perguntas. Baixei no meu celular e mandei no grupo da família na hora."</span>
+      <div class="author">
+        <img src="assets-grandchild/images/image3.png" alt="Maria Helena" class="author-thumb">
+        Maria Helena, avó da Clara
+      </div>
+    </div>
+  </section>
+
+  <section style="padding: 20px; margin-bottom: 20px;">
+    <h2 style="text-align: center; margin-bottom: 20px;">Dúvidas Comuns</h2>
+    
+    <details>
+      <summary>Eu preciso entender de música?</summary>
+      <p>Não! Você só conta a história. Nós fazemos a letra, a melodia e entregamos tudo pronto.</p>
+    </details>
+
+    <details>
+      <summary>Como eu recebo a música?</summary>
+      <p>Assim que ficar pronta, ela aparece na sua tela aqui no site. Tem um botão grande para "Baixar" e outro para "Compartilhar". É super fácil.</p>
+    </details>
+
+    <details>
+      <summary>Por que 2 versões?</summary>
+      <p>Usamos a mesma letra, mas criamos dois arranjos diferentes. Às vezes uma fica mais emocionante e a outra mais alegre. Você fica com as duas!</p>
+    </details>
+  </section>
+
+  <section style="padding: 30px 20px; text-align: center; background: #F2F2F2;">
+    <h3 style="margin-bottom: 10px;">Garantia de Emoção</h3>
+    <p style="font-size: 0.95rem;">Se por algum motivo técnico você não receber sua música, devolvemos 100% do seu valor.</p>
+  </section>
+
+</div> <div class="sticky-footer">
+  <div class="price-tag">
+    <span class="price-old">de R$ 99,90</span>
+    por <span class="price-new">R$ 49,90</span>
+  </div>
+  <button class="btn btn-green" onclick="startCreation()">
+    Criar Música Agora
+  </button>
+  <p class="guarantee-text">🔒 Pagamento seguro via PIX ou Cartão</p>
+</div>
+
+<script>
+  function startCreation() {
+    // Redireciona para o login ou início do fluxo
+    window.location.href = "login.html?theme=grandchild"; 
+  }
+</script>
+
+</body>
+</html>

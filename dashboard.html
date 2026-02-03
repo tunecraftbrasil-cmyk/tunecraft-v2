@@ -2855,7 +2855,19 @@
         }
 
         function openChat() {
-            // se tiver chat.js configurado, executar de lá
+            if (typeof window.openChatModal === 'function') {
+                window.openChatModal();
+                return;
+            }
+            const modal = document.getElementById('chatModal');
+            if (modal) {
+                modal.classList.add('active');
+                if (typeof window.initChat === 'function') {
+                    window.initChat();
+                }
+            } else {
+                console.warn('chatModal não encontrado no DOM');
+            }
         }
 
         document.getElementById('alterTitleOptions')?.addEventListener('change', handleAlterModalOptionChange);

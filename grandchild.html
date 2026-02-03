@@ -255,17 +255,64 @@
 
     <img src="assets-grandchild/images/image1.png" alt="Avó e neto sorrindo" class="hero-img" loading="lazy">
     
-    <div class="card" style="background: #FDFDFD; border-left: 4px solid var(--primary-gold);">
-      <p style="margin-bottom:4px; font-weight:700;">Ouça um exemplo:</p>
-      <div class="audio-sample">
-        <div class="play-btn">▶</div>
-        <div class="track-info">
-          <strong>Canção da Sofia</strong>
-          <small>Feita pela Avó Teresa</small>
-        </div>
+    <div class="card" style="background: #FDFDFD; border-left: 4px solid var(--primary-gold); text-align: left; padding: 24px;">
+      
+      <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.15rem; color: #4a4a4a; line-height: 1.5; margin-bottom: 12px;">
+        "Durante dias, o <strong>vidro da UTI</strong> foi a única coisa que me separava da minha neta. Eu só podia olhar. Mas quando finalmente toquei a mãozinha dela e ela apertou meu dedo, aquele vidro sumiu. Essa música conta o momento exato em que o amor venceu o medo."
+      </p>
+      
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+        <img src="assets-grandchild/images/image2.png" alt="Vovó Teresa" style="width:32px; height:32px; border-radius:50%; object-fit:cover;">
+        <span style="font-size: 0.9rem; color: #666; font-weight: 700;">— Vovó Teresa</span>
       </div>
-      <p style="font-size:0.85rem; color:#666; margin-top:8px;">(A sua será criada com a SUA história)</p>
+
+      <p style="margin-bottom:8px; font-size:0.85rem; color:#888; text-transform:uppercase; letter-spacing:1px; font-weight:bold;">Ouça a música que criamos:</p>
+      
+      <div class="audio-sample" style="background: #F4F1EA; border: 1px solid #E0D8C3;">
+        
+        <div class="play-btn" onclick="togglePlay(this)" style="cursor:pointer;">▶</div>
+        
+        <div class="track-info">
+          <strong style="color: var(--primary-dark);">Canção da Sofia</strong>
+          <small>O Milagre da Vovó Teresa</small>
+        </div>
+
+        <audio id="sofia-player" src="assets-grandchild/audio/sofia.mp3" preload="auto"></audio>
+      </div>
+
     </div>
+    
+    <script>
+      function togglePlay(btnElement) {
+        var audio = document.getElementById("sofia-player");
+        
+        // Verifica se o áudio foi encontrado
+        if (!audio) {
+          alert("Erro: Elemento de áudio não encontrado.");
+          return;
+        }
+
+        // Tenta tocar
+        if (audio.paused) {
+          var playPromise = audio.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.then(_ => {
+              // Áudio começou a tocar
+              btnElement.innerHTML = "⏸";
+            })
+            .catch(error => {
+              // Erro ao tentar tocar (geralmente caminho errado)
+              console.error(error);
+              alert("Não foi possível tocar o áudio. Verifique se o arquivo 'audiosofia.mp3' está na pasta 'assets-grandchild' corretamente.");
+            });
+          }
+        } else {
+          audio.pause();
+          btnElement.innerHTML = "▶";
+        }
+      }
+    </script>
   </section>
 
   <section style="padding: 20px;">

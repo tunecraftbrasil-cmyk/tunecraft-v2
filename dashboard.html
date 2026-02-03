@@ -1253,6 +1253,46 @@
             transform: translateY(-1px);
         }
 
+        .tc-btn.play,
+        .tc-mini.download,
+        .tc-mini.share {
+            font-size: 0;
+        }
+
+        .tc-btn.play::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            display: block;
+            background-color: #fff;
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8 5v14l11-7z'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        .tc-btn.play[data-state="playing"]::before {
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 5h4v14H6zm8 0h4v14h-4z'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 5h4v14H6zm8 0h4v14h-4z'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        .tc-mini.download::before,
+        .tc-mini.share::before {
+            content: "";
+            width: 18px;
+            height: 18px;
+            display: block;
+            background-color: var(--text);
+        }
+
+        .tc-mini.download::before {
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v10l4-4h-3V3h-2v6H8l4 4zM5 19h14v-2H5z'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 3v10l4-4h-3V3h-2v6H8l4 4zM5 19h14v-2H5z'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
+        .tc-mini.share::before {
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 21l21-9L2 3v7l15 2-15 2z'/%3E%3C/svg%3E") center / contain no-repeat;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 21l21-9L2 3v7l15 2-15 2z'/%3E%3C/svg%3E") center / contain no-repeat;
+        }
+
         .tc-vol {
             width: 92px;
             accent-color: var(--brand);
@@ -1604,7 +1644,13 @@
     <script src="chat_themes_full.js"></script>
 
     <script>
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+            auth: {
+                persistSession: true,
+                autoRefreshToken: true,
+                detectSessionInUrl: true
+            }
+        });
 
         let userData = JSON.parse(localStorage.getItem('tuneCraftUser')) || { name: 'Visitante', email: '', userid: null, orders: [] };
         let currentAlterandoId = null;
@@ -1616,6 +1662,145 @@
             toast.className = `toast-message ${type}`;
             toast.style.display = 'block';
             setTimeout(() => toast.style.display = 'none', 4000);
+        }
+
+        function formatTime(totalSeconds) {
+            if (!Number.isFinite(totalSeconds) || totalSeconds <= 0) return '0:00';
+            const m = Math.floor(totalSeconds / 60);
+            const s = Math.floor(totalSeconds % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
+        }
+
+        function pickAudioUrl(entry) {
+            if (!entry) return '';
+            if (typeof entry === 'string') {
+                try {
+                    const parsed = JSON.parse(entry);
+                    return parsed?.audio_url || parsed?.url || parsed?.audioUrl || entry;
+                } catch {
+                    return entry;
+                }
+            }
+            if (typeof entry === 'object') {
+                return entry.audio_url || entry.url || entry.audioUrl || '';
+            }
+            return '';
+        }
+
+        function initPlayers() {
+            const players = document.querySelectorAll('.tc-player');
+            players.forEach(player => {
+                if (player.dataset.initialized) return;
+                player.dataset.initialized = 'true';
+
+                const audio = player.querySelector('audio');
+                const playBtn = player.querySelector('.tc-btn.play');
+                const bar = player.querySelector('.tc-bar');
+                const progress = player.querySelector('.tc-progress');
+                const dot = player.querySelector('.tc-dot');
+                const curEl = player.querySelector('.tc-time .cur');
+                const durEl = player.querySelector('.tc-time .dur');
+                const vol = player.querySelector('.tc-vol');
+
+                const url = pickAudioUrl(player.dataset.audiourls);
+                if (!url || !audio) return;
+                audio.src = url;
+
+                const setPlayState = (isPlaying) => {
+                    if (playBtn) {
+                        playBtn.dataset.state = isPlaying ? 'playing' : 'paused';
+                        playBtn.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+                    }
+                };
+
+                if (playBtn) {
+                    setPlayState(false);
+                    playBtn.addEventListener('click', async () => {
+                        if (audio.paused) {
+                            try {
+                                await audio.play();
+                                setPlayState(true);
+                            } catch (e) {
+                                console.warn('audio play error:', e);
+                                showToast('Não foi possível tocar o áudio.', 'error');
+                            }
+                        } else {
+                            audio.pause();
+                            setPlayState(false);
+                        }
+                    });
+                }
+
+                audio.addEventListener('loadedmetadata', () => {
+                    if (durEl) durEl.textContent = formatTime(audio.duration);
+                });
+
+                audio.addEventListener('timeupdate', () => {
+                    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+                    const pct = (audio.currentTime / audio.duration) * 100;
+                    if (progress) progress.style.width = `${pct}%`;
+                    if (dot) dot.style.left = `${pct}%`;
+                    if (curEl) curEl.textContent = formatTime(audio.currentTime);
+                });
+
+                audio.addEventListener('ended', () => setPlayState(false));
+
+                if (bar) {
+                    bar.addEventListener('click', (e) => {
+                        if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+                        const rect = bar.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const pct = Math.min(Math.max(x / rect.width, 0), 1);
+                        audio.currentTime = pct * audio.duration;
+                    });
+                }
+
+                if (vol) {
+                    vol.addEventListener('input', () => {
+                        audio.volume = parseFloat(vol.value || '0.9');
+                    });
+                }
+            });
+        }
+
+        async function downloadAudio(url, title, fallbackName) {
+            if (!url) return;
+            const filename = (fallbackName || title || 'musica').replace(/[^\w\-]+/g, '-').toLowerCase() + '.mp3';
+            try {
+                const res = await fetch(url, { mode: 'cors' });
+                if (!res.ok) throw new Error('download failed');
+                const blob = await res.blob();
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(a.href);
+            } catch (e) {
+                console.warn('download fallback:', e);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            }
+        }
+
+        async function shareNative(url, title) {
+            if (!url) return;
+            if (navigator.share) {
+                try {
+                    await navigator.share({ title: title || 'Minha música', url });
+                    return;
+                } catch (e) {
+                    console.warn('share cancelled:', e);
+                }
+            }
+            const msg = encodeURIComponent(`${title || 'Minha música'}: ${url}`);
+            window.open(`https://wa.me/?text=${msg}`, '_blank');
         }
 
         function normalizeStatus(s) {
@@ -1664,6 +1849,25 @@
                 'Préroa da mensagem': asked.length,
                 askedcount: `${asked.length} respondidas`
             };
+        }
+
+        function getDisplayNameFromMetadata(user) {
+            const meta = user?.user_metadata || {};
+            return meta.fullname || meta.full_name || meta.name || 'Usuário';
+        }
+
+        async function logout() {
+            try {
+                await sb.auth.signOut();
+            } catch (e) {
+                console.warn('logout error:', e);
+            }
+            localStorage.removeItem('tuneCraftUser');
+            localStorage.removeItem('tuneCraftpendingOrderId');
+            localStorage.removeItem('tuneCraftcheckoutEmail');
+            localStorage.removeItem('tuneCraftcheckoutName');
+            localStorage.removeItem('tuneCraft_lastDraftId');
+            window.location.href = 'login.html';
         }
 
         async function getSessionOrRedirect() {
@@ -1720,7 +1924,7 @@
             const session = await getSessionOrRedirect();
             if (!session) return;
 
-            const fullName = session.user.user_metadata?.fullname;
+            const fullName = getDisplayNameFromMetadata(session.user);
             userData.name = fullName ?? 'Usuário';
             userData.email = session.user.email;
             userData.email = userData.email;
@@ -1739,6 +1943,12 @@
 
             renderSections();
         }
+
+        sb.auth.onAuthStateChange((event) => {
+            if (event === 'SIGNED_OUT') {
+                window.location.href = 'login.html';
+            }
+        });
 
         initDashboard();
 
@@ -1914,9 +2124,9 @@
                                             <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
                                         </div>
                                         <!-- DOWNLOAD FORADO no abre outra aba -->
-                                        <button class="tc-mini" type="button" onclick="downloadAudio('${urls[0].audio_url}', '${urls[0]}', 'musica-versao-a')" title="Baixar"></button>
+                                        <button class="tc-mini download" type="button" onclick="downloadAudio('${urls[0].audio_url}', '${urls[0]}', 'musica-versao-a')" title="Baixar">Baixar</button>
                                         <!-- COMPARTILHAR nativo fallback WhatsApp -->
-                                        <button class="tc-mini" type="button" onclick="shareNative('${urls[0].audio_url}', '${urls[0]}', 'Minha música - Versão A')" title="Compartilhar"></button>
+                                        <button class="tc-mini share" type="button" onclick="shareNative('${urls[0].audio_url}', '${urls[0]}', 'Minha música - Versão A')" title="Compartilhar">Compart.</button>
                                         <audio preload="metadata" style="display:none;"></audio>
                                     </div>
                                     <div style="height:10px;"></div>
@@ -1936,9 +2146,9 @@
                                             <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
                                         </div>
                                         <!-- DOWNLOAD FORADO -->
-                                        <button class="tc-mini" type="button" onclick="downloadAudio('${urls[1].audio_url}', '${urls[1]}', 'musica-versao-b')" title="Baixar"></button>
+                                        <button class="tc-mini download" type="button" onclick="downloadAudio('${urls[1].audio_url}', '${urls[1]}', 'musica-versao-b')" title="Baixar">Baixar</button>
                                         <!-- COMPARTILHAR -->
-                                        <button class="tc-mini" type="button" onclick="shareNative('${urls[1].audio_url}', '${urls[1]}', 'Minha música - Versão B')" title="Compartilhar"></button>
+                                        <button class="tc-mini share" type="button" onclick="shareNative('${urls[1].audio_url}', '${urls[1]}', 'Minha música - Versão B')" title="Compartilhar">Compart.</button>
                                         <audio preload="metadata" style="display:none;"></audio>
                                     </div>
                                 </div>
@@ -1959,7 +2169,7 @@
                                         <div class="tc-actions">
                                             <input class="tc-vol" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume">
                                         </div>
-                                        <a class="tc-mini" href="${urls[0].audio_url}" download title="Baixar"></a>
+                                        <button class="tc-mini download" type="button" onclick="downloadAudio('${urls[0].audio_url}', '${title} - Audio', 'musica')" title="Baixar">Baixar</button>
                                         <audio preload="metadata" style="display:none;"></audio>
                                     </div>
                                     <div style="height:10px;"></div>
@@ -1973,6 +2183,8 @@
                     }
                 });
             }
+
+            initPlayers();
 
             if (!hasDrafts) {
                 draftsContainer.innerHTML = `
@@ -2365,3 +2577,5 @@
     </script>
 </body>
 </html>
+
+

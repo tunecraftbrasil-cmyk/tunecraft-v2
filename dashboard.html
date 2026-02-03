@@ -620,45 +620,151 @@
         }
 
         /* alterar modal fields */
-        .alterar-step {
+        .alterar-title-control {
             margin-bottom: 18px;
         }
 
-        .alterar-step h3 {
+        .alterar-title-control h3 {
             margin-bottom: 10px;
             color: var(--text);
         }
 
-        .alterar-step p {
-            font-size: 0.9rem;
-            color: #64748b;
-            margin-bottom: 10px;
+        .alter-title-intro {
+            margin-bottom: 4px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
         }
 
-        .alterar-step textarea {
+        .alter-title-options {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .alter-title-input {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .alter-title-input input {
             width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            border: 2px solid rgba(148, 163, 184, 0.18);
+            padding: 10px;
             border-radius: 12px;
-            font-size: 15px;
-            font-family: inherit;
-            resize: vertical;
+            border: 2px solid rgba(148, 163, 184, 0.25);
             background: rgba(255, 255, 255, 0.04);
             color: var(--text);
         }
 
-        .alterar-step textarea:focus {
-            outline: none;
-            border-color: rgba(0, 217, 255, 0.85);
-            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.14);
+        .alter-sections-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
         }
 
-        .char-count {
-            text-align: right;
+        .alter-section {
+            background: rgba(15, 26, 46, 0.65);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.20);
+            padding: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
+
+        .alter-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .alter-section-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        .alter-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .alter-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 999px;
             font-size: 0.85rem;
-            color: var(--muted);
-            margin-top: 6px;
+            color: var(--text-2);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .alter-option input {
+            display: none;
+        }
+
+        .alter-option.active {
+            border-color: rgba(0, 217, 255, 0.4);
+            background: rgba(0, 217, 255, 0.12);
+            color: var(--text);
+        }
+
+        .alter-section-body {
+            margin-top: 12px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .alter-original {
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(255, 255, 255, 0.02);
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, monospace;
+            font-size: 0.85rem;
+            color: var(--text-2);
+            white-space: pre-wrap;
+        }
+
+        .alter-input {
+            display: none;
+        }
+
+        .alter-input textarea {
+            width: 100%;
+            min-height: 120px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .alter-input textarea:focus {
+            outline: none;
+            border-color: rgba(0, 217, 255, 0.85);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.15);
+        }
+
+        .alter-notes {
+            margin-top: 18px;
+        }
+
+        .alter-notes textarea {
+            width: 100%;
+            min-height: 120px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.18);
+            background: rgba(255, 255, 255, 0.04);
+            padding: 12px;
+            color: var(--text);
+            font-family: inherit;
         }
 
         .alterar-buttons {
@@ -1537,21 +1643,31 @@
                 <h2>Alterar Letra</h2>
                 <button class="alterar-close" onclick="fecharAlterarModal()"></button>
             </div>
-            <div class="alterar-step">
-                <h3>O que você gostaria de mudar na letra?</h3>
-                <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 10px;">Exemplos: Tornar o refrão mais animado, Adicionar menção a Dourados, Mudar o tom de romântico para alegre</p>
-                <textarea id="mudancasDesejadas" placeholder="Ex: Gostaria que o refrão fosse mais energético e mencionasse nossa viagem para o Rio..." maxlength="500" oninput="updateAlterarCharCount('mudancasDesejadas', 'count1')"></textarea>
-                <div class="char-count"><span id="count1">0</span>/500</div>
+            <div class="alterar-title-control">
+                <h3>Primeiro, o título da música</h3>
+                <div class="alter-title-intro" id="alterSongTitle">Título</div>
+                <div class="alter-title-options" id="alterTitleOptions">
+                    <label class="alter-option active">
+                        <input type="radio" name="alter-title-option" value="keep" checked>
+                        <span>Manter título</span>
+                    </label>
+                    <label class="alter-option">
+                        <input type="radio" name="alter-title-option" value="alter">
+                        <span>Ajustar título</span>
+                    </label>
+                    <label class="alter-option">
+                        <input type="radio" name="alter-title-option" value="rewrite">
+                        <span>Reescrever título</span>
+                    </label>
+                </div>
+                <div class="alter-title-input" id="alterTitleInput">
+                    <input type="text" id="alterTitleField" placeholder="Digite o novo título ou ajuste aqui">
+                </div>
             </div>
-            <div class="alterar-step">
-                <h3>Há algo específico que DEVE permanecer?</h3>
-                <textarea id="manterElementos" placeholder="Ex: Mantenha as referências a Dourados e o nome Aline..." maxlength="300" oninput="updateAlterarCharCount('manterElementos', 'count2')"></textarea>
-                <div class="char-count"><span id="count2">0</span>/300</div>
-            </div>
-            <div class="alterar-step">
-                <h3>Observações finais sobre o tom ou estilo? (Opcional)</h3>
-                <textarea id="observacoesFinais" placeholder="Ex: Quero que seja mais emocionante, menos melancólica..." maxlength="200" oninput="updateAlterarCharCount('observacoesFinais', 'count3')"></textarea>
-                <div class="char-count"><span id="count3">0</span>/200</div>
+            <div class="alter-sections-wrapper" id="alterSectionsContainer"></div>
+            <div class="alter-notes">
+                <h3>Observações gerais</h3>
+                <textarea id="observacoesFinais" placeholder="Conte o que mais te importa para essa alteração (tom, referências, público, etc.)"></textarea>
             </div>
             <div class="alterar-buttons">
                 <button class="btn-alterar-cancel" onclick="fecharAlterarModalCancelar()">Cancelar</button>
@@ -1655,6 +1771,17 @@
         let userData = JSON.parse(localStorage.getItem('tuneCraftUser')) || { name: 'Visitante', email: '', userid: null, orders: [] };
         let currentAlterandoId = null;
         let editDraftCurrentPedidoId = null;
+        let alteracaoState = {
+            pedidoId: null,
+            titleOriginal: '',
+            sections: [],
+            lyrics: ''
+        };
+        const ALTER_OPTION_LABELS = {
+            keep: 'Manter trecho',
+            alter: 'Alterar trecho',
+            rewrite: 'Reescrever completamente'
+        };
 
         function showToast(message, type = 'info') {
             const toast = document.getElementById('toastMessage');
@@ -1662,6 +1789,135 @@
             toast.className = `toast-message ${type}`;
             toast.style.display = 'block';
             setTimeout(() => toast.style.display = 'none', 4000);
+        }
+
+        function getOrderById(pedidoId) {
+            return userData.orders?.find(order => order.id === pedidoId) || null;
+        }
+
+        function detectSectionLabel(text, index) {
+            const lines = (text || '').split('\n').map(line => line.trim()).filter(Boolean);
+            for (const line of lines) {
+                const match = line.match(/\[(Verse|Chorus|Bridge|Outro|Intro|Refrain)[^\]]*\]/i);
+                if (match) return match[0];
+            }
+            return `Trecho ${index + 1}`;
+        }
+
+        function buildAlterSections(lyrics) {
+            const cleaned = (lyrics || '').replace(/\r/g, '').trim();
+            if (!cleaned) {
+                return [{
+                    label: 'Letra',
+                    original: 'Trecho indisponível.'
+                }];
+            }
+            const parts = cleaned.split(/\n{2,}/).map(part => part.trim()).filter(Boolean);
+            if (parts.length === 0) {
+                return [{
+                    label: 'Letra',
+                    original: cleaned
+                }];
+            }
+            return parts.map((part, index) => ({
+                label: detectSectionLabel(part, index),
+                original: part
+            }));
+        }
+
+        function updateOptionVisuals(input) {
+            const label = input.closest('.alter-option');
+            if (!label) return;
+            const group = label.parentElement;
+            group?.querySelectorAll('.alter-option').forEach(node => node.classList.remove('active'));
+            label.classList.add('active');
+        }
+
+        function toggleTitleInput(option) {
+            const wrapper = document.getElementById('alterTitleInput');
+            if (!wrapper) return;
+            wrapper.style.display = option === 'keep' ? 'none' : 'block';
+        }
+
+        function toggleSectionInput(index, option) {
+            const wrapper = document.getElementById(`alter-input-${index}`);
+            if (!wrapper) return;
+            wrapper.style.display = option === 'keep' ? 'none' : 'block';
+        }
+
+        function handleAlterModalOptionChange(event) {
+            const target = event.target;
+            if (!target || target.tagName !== 'INPUT' || target.type !== 'radio') return;
+            if (target.name === 'alter-title-option') {
+                updateOptionVisuals(target);
+                toggleTitleInput(target.value);
+                return;
+            }
+            const match = target.name.match(/^alter-option-(\d+)$/);
+            if (match) {
+                const sectionIndex = Number(match[1]);
+                updateOptionVisuals(target);
+                toggleSectionInput(sectionIndex, target.value);
+            }
+        }
+
+        function renderAlterSections() {
+            const container = document.getElementById('alterSectionsContainer');
+            if (!container) return;
+            container.innerHTML = alteracaoState.sections.map((section, index) => {
+                const sanitizedLabel = escapeHtml(section.label || `Trecho ${index + 1}`);
+                const sanitizedOriginal = escapeHtml(section.original || '—');
+                const options = Object.entries(ALTER_OPTION_LABELS).map(([action, label]) => `
+                    <label class="alter-option ${action === 'keep' ? 'active' : ''}">
+                        <input type="radio" name="alter-option-${index}" value="${action}" ${action === 'keep' ? 'checked' : ''}>
+                        <span>${label}</span>
+                    </label>
+                `).join('');
+                return `
+                    <div class="alter-section" data-index="${index}">
+                        <div class="alter-section-header">
+                            <div class="alter-section-title">${sanitizedLabel}</div>
+                            <div class="alter-options">
+                                ${options}
+                            </div>
+                        </div>
+                        <div class="alter-section-body">
+                            <div class="alter-original">${sanitizedOriginal}</div>
+                            <div class="alter-input" id="alter-input-${index}">
+                                <textarea id="alter-text-${index}" placeholder="Descreva o que deve mudar neste trecho..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            container.querySelectorAll('.alter-option input:checked').forEach(input => {
+                updateOptionVisuals(input);
+                const match = input.name.match(/^alter-option-(\d+)$/);
+                if (match) {
+                    toggleSectionInput(Number(match[1]), input.value);
+                }
+            });
+        }
+
+        function resetAlterModalState() {
+            alteracaoState = {
+                pedidoId: null,
+                titleOriginal: '',
+                sections: [],
+                lyrics: ''
+            };
+            const container = document.getElementById('alterSectionsContainer');
+            if (container) container.innerHTML = '';
+            const notes = document.getElementById('observacoesFinais');
+            if (notes) notes.value = '';
+            const titleField = document.getElementById('alterTitleField');
+            if (titleField) titleField.value = '';
+            const titleInputs = document.querySelectorAll('input[name="alter-title-option"]');
+            titleInputs.forEach(input => {
+                input.checked = input.value === 'keep';
+                input.closest('.alter-option')?.classList.toggle('active', input.value === 'keep');
+            });
+            toggleTitleInput('keep');
         }
 
         function formatTime(totalSeconds) {
@@ -2248,39 +2504,68 @@
         }
 
         function abrirModalAlteracao(pedidoId) {
+            const order = getOrderById(pedidoId);
+            if (!order) {
+                showToast('Pedido não encontrado', 'error');
+                return;
+            }
             currentAlterandoId = pedidoId;
+            const lyrics = order.versao_original?.customer_lyrics || order.lyrics || order.payload?.lyrics || '';
+            alteracaoState = {
+                pedidoId,
+                titleOriginal: order.title || 'Título',
+                sections: buildAlterSections(lyrics),
+                lyrics
+            };
+            const titleDisplay = document.getElementById('alterSongTitle');
+            if (titleDisplay) titleDisplay.innerText = alteracaoState.titleOriginal;
+            const notes = document.getElementById('observacoesFinais');
+            if (notes) notes.value = '';
+            const titleField = document.getElementById('alterTitleField');
+            if (titleField) titleField.value = '';
             document.getElementById('alterarModal').classList.add('active');
-            document.getElementById('mudancasDesejadas').value = '';
-            document.getElementById('manterElementos').value = '';
-            document.getElementById('observacoesFinais').value = '';
-            document.getElementById('count1').innerText = '0';
-            document.getElementById('count2').innerText = '0';
-            document.getElementById('count3').innerText = '0';
+            renderAlterSections();
+            toggleTitleInput('keep');
         }
 
         function fecharAlterarModal() {
             document.getElementById('alterarModal').classList.remove('active');
             currentAlterandoId = null;
+            resetAlterModalState();
         }
 
-        function updateAlterarCharCount(fieldId, countId) {
-            const field = document.getElementById(fieldId);
-            const count = field.value.length;
-            document.getElementById(countId).innerText = count;
+        function fecharAlterarModalCancelar() {
+            fecharAlterarModal();
+        }
+
+        function buildStructuredSuggestion() {
+            const titleOption = document.querySelector('input[name="alter-title-option"]:checked')?.value || 'keep';
+            const titleText = document.getElementById('alterTitleField')?.value.trim() || '';
+            const sections = alteracaoState.sections.map((section, index) => {
+                const optionInput = document.querySelector(`input[name="alter-option-${index}"]:checked`);
+                const action = optionInput?.value || 'keep';
+                const text = document.getElementById(`alter-text-${index}`)?.value.trim() || '';
+                return {
+                    label: section.label,
+                    action,
+                    text,
+                    original: section.original
+                };
+            });
+            const notes = document.getElementById('observacoesFinais')?.value.trim() || '';
+            return {
+                title: {
+                    action: titleOption,
+                    text: titleText
+                },
+                sections,
+                notes
+            };
         }
 
         async function submitAlteracao() {
-            const mudancas = document.getElementById('mudancasDesejadas').value.trim();
-            const manter = document.getElementById('manterElementos').value.trim();
-            const obs = document.getElementById('observacoesFinais').value.trim();
-
-            if (mudancas.length < 20) {
-                showToast('Por favor, descreva as mudanças com pelo menos 20 caracteres', 'error');
-                return;
-            }
-
-            if (manter.length < 10) {
-                showToast('Por favor, especifique o que deve ser mantido (mínimo 10 caracteres)', 'error');
+            if (!currentAlterandoId) {
+                showToast('Pedido inválido', 'error');
                 return;
             }
 
@@ -2288,7 +2573,15 @@
             btn.disabled = true;
             btn.innerText = 'Processando...';
 
-            const sugestoes = `MUDANÇAS DESEJADAS:\n${mudancas}\n\nELEMENTOS QUE DEVEM PERMANECER:\n${manter}${obs ? `\n\nOBSERVAÇÕES ADICIONAIS:\n${obs}` : ''}`.trim();
+            const structured = buildStructuredSuggestion();
+            if (!structured.sections.length) {
+                showToast('Nenhum trecho disponível para alterar', 'error');
+                btn.disabled = false;
+                btn.innerText = 'Enviar Alterações';
+                return;
+            }
+
+            const sugestoes = JSON.stringify(structured);
 
             try {
                 const response = await fetch(`${SUPABASE_URL}functions/v1/alterar-letra`, {
@@ -2296,7 +2589,6 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pedidoId: currentAlterandoId, sugestoes })
                 });
-
                 const result = await response.json();
 
                 if (!response.ok) throw new Error(result.error || 'Erro ao processar alterações');
@@ -2309,10 +2601,10 @@
                 renderSections();
             } catch (error) {
                 showToast(`Erro: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Enviar Alterações';
             }
-
-            btn.disabled = false;
-            btn.innerText = 'Enviar Alterações';
         }
 
         async function aprovarLetraOriginal(pedidoId) {
@@ -2471,6 +2763,9 @@
         function openChat() {
             // se tiver chat.js configurado, executar de lá
         }
+
+        document.getElementById('alterTitleOptions')?.addEventListener('change', handleAlterModalOptionChange);
+        document.getElementById('alterSectionsContainer')?.addEventListener('change', handleAlterModalOptionChange);
     </script>
 
     <!-- React LyricPreview -->

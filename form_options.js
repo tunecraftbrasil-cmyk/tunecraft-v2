@@ -103,3 +103,6 @@ const FORMOPTIONS = {
         { label: "Senior (56+ anos)", value: "adultsenior" }
     ]
 };
+
+
+window.FORMOPTIONS = FORMOPTIONS;

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
@@ -50,6 +50,7 @@
             display: flex;
             height: 100vh;
             overflow: hidden;
+            color-scheme: dark;
         }
 
         /* SIDEBAR DESKTOP */
@@ -581,6 +582,10 @@
             padding: 16px;
         }
 
+        .edit-draft-modal {
+            color-scheme: dark;
+        }
+
         .alterar-modal.active, .edit-draft-modal.active {
             display: flex;
         }
@@ -866,6 +871,8 @@
         }
 
         .edit-draft-form-group input, .edit-draft-form-group textarea, .edit-draft-form-group select {
+            color-scheme: dark;
+            background-color: rgba(255, 255, 255, 0.04);
             width: 100%;
             padding: 10px;
             border: 2px solid rgba(148, 163, 184, 0.18);
@@ -876,6 +883,20 @@
             min-width: 0;
             background: rgba(255, 255, 255, 0.04);
             color: var(--text);
+        }
+
+        .edit-draft-form-group select {
+            background-color: #0b1220;
+        }
+
+        .edit-draft-form-group select option {
+            background: #0b1220;
+            color: #e5e7eb;
+        }
+
+        .edit-draft-form-group select optgroup {
+            background: #0b1220;
+            color: #e5e7eb;
         }
 
         .edit-draft-form-group textarea {
@@ -1750,6 +1771,7 @@
 
     <!-- Toast de notificações -->
     <div class="toast-message" id="toastMessage"></div>
+    <div class="edit-draft-toast" id="editDraftToast"></div>
 
     <!-- NOVO Config Global -->
     <script src="config.js"></script>
@@ -1761,17 +1783,17 @@
     <script src="edit-draft-modal.js"></script>
 
     <script>
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        window.sb = window.sb || window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
             auth: {
                 persistSession: true,
                 autoRefreshToken: true,
                 detectSessionInUrl: true
             }
         });
+        const sb = window.sb;
 
         let userData = JSON.parse(localStorage.getItem('tuneCraftUser')) || { name: 'Visitante', email: '', userid: null, orders: [] };
         let currentAlterandoId = null;
-        let editDraftCurrentPedidoId = null;
         let alteracaoState = {
             pedidoId: null,
             titleOriginal: '',
@@ -2873,5 +2895,9 @@
     </script>
 </body>
 </html>
+
+
+
+
 
 

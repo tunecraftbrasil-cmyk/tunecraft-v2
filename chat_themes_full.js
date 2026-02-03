@@ -496,3 +496,6 @@ console.log('✅ CHAT_THEMES_12_TEMAS_COMPLETO.js carregado!');
 console.log('✅ Total de steps:', elaboratedChatFlow.length);
 console.log('✅ 12 temas completos com hints (adendo contextual)');
 console.log('✅ Pronto para uso no seu projeto!');
+
+
+window.elaboratedChatFlow = elaboratedChatFlow;

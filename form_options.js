@@ -12,7 +12,7 @@
  * - Muda aqui, atualiza TUDO automaticamente
  */
 
-const FORM_OPTIONS = {
+const FORMOPTIONS = {
     themes: [
         { label: "🎂 Aniversário", value: "birthday" },
         { label: "💌 Declaração de amor", value: "love_declaration" },

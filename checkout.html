@@ -802,9 +802,24 @@ function applyFreeUIState(isFree) {
   }
 
   function loadCheckoutData() {
-    const pedidoId = localStorage.getItem('tuneCraft_pendingOrderId');
-    const email = localStorage.getItem('tuneCraft_checkoutEmail');
-    const name = localStorage.getItem('tuneCraft_checkoutName');
+    const params = new URLSearchParams(window.location.search);
+    const queryOrderId = params.get('orderId') || params.get('pedidoId');
+    const queryEmail = params.get('email');
+    const queryName = params.get('name');
+
+    let pedidoId = localStorage.getItem('tuneCraft_pendingOrderId');
+    let email = localStorage.getItem('tuneCraft_checkoutEmail');
+    let name = localStorage.getItem('tuneCraft_checkoutName');
+
+    if ((!pedidoId || !email || !name) && (queryOrderId || queryEmail || queryName)) {
+      pedidoId = pedidoId || queryOrderId || '';
+      email = email || queryEmail || '';
+      name = name || queryName || '';
+
+      if (pedidoId) localStorage.setItem('tuneCraft_pendingOrderId', pedidoId);
+      if (email) localStorage.setItem('tuneCraft_checkoutEmail', email);
+      if (name) localStorage.setItem('tuneCraft_checkoutName', name);
+    }
 
     if (!pedidoId || !email || !name) {
       showToast("❌ Nenhum pagamento pendente. Redirecionando...", "error");

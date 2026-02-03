@@ -138,6 +138,23 @@ function flattenAnswers(answers) {
   return items;
 }
 
+function setNestedValue(target, path, value) {
+  if (!path) return;
+  const keys = path.split('.');
+  let ref = target;
+  for (let i = 0; i < keys.length; i += 1) {
+    const key = keys[i];
+    if (i === keys.length - 1) {
+      ref[key] = value;
+      return;
+    }
+    if (!ref[key] || typeof ref[key] !== 'object') {
+      ref[key] = {};
+    }
+    ref = ref[key];
+  }
+}
+
 function renderEditDraftForm(payload) {
   const form = document.getElementById('editDraftForm');
   if (!form) return;
@@ -238,28 +255,26 @@ async function saveEditDraftDynamic() {
 
   try {
     ensureSupabaseClient();
-    const updatedAnswers = {};
+    const baseAnswers = editDraftPayloadBase?.answers ? JSON.parse(JSON.stringify(editDraftPayloadBase.answers)) : {};
+    const updatedAnswers = baseAnswers;
+    const updatedAsked = editDraftAskedCache.map((item) => ({ ...item }));
 
-    editDraftAskedCache.forEach((item) => {
+    editDraftAskedCache.forEach((item, index) => {
       const fieldName = item.fieldName;
       const fieldId = `edit_${fieldName.replace(/\./g, '_')}`;
       const input = document.getElementById(fieldId);
       if (!input) return;
 
       const value = input.value || input.textContent || '';
-      const parts = fieldName.split('.');
-      if (parts.length === 2) {
-        const [parent, child] = parts;
-        if (!updatedAnswers[parent]) updatedAnswers[parent] = {};
-        updatedAnswers[parent][child] = value;
-      } else {
-        updatedAnswers[fieldName] = value;
+      setNestedValue(updatedAnswers, fieldName, value);
+      if (updatedAsked[index]) {
+        updatedAsked[index].answerValue = value;
       }
     });
 
     const payload = {
       ...(editDraftPayloadBase || {}),
-      asked: editDraftAskedCache,
+      asked: updatedAsked,
       answers: updatedAnswers,
       updated_at: new Date().toISOString()
     };

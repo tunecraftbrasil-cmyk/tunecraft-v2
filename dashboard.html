@@ -603,6 +603,20 @@
             color: var(--text);
         }
 
+        /* Modal de letra com área maior no desktop */
+        #lyricsModal .alterar-content {
+            width: min(1100px, 94vw);
+            max-width: 1100px;
+        }
+
+        #lyricsModalText {
+            width: 100%;
+            min-height: 360px;
+            max-height: 60vh;
+            font-size: 15px;
+            line-height: 1.55;
+        }
+
         .alterar-header, .edit-draft-header {
             display: flex;
             justify-content: space-between;
@@ -1773,6 +1787,21 @@
     <div class="toast-message" id="toastMessage"></div>
     <div class="edit-draft-toast" id="editDraftToast"></div>
 
+    <!-- Modal de Letra -->
+    <div class="alterar-modal" id="lyricsModal">
+        <div class="alterar-content">
+            <div class="alterar-header">
+                <h2>Letra</h2>
+                <button class="alterar-close" onclick="closeLyricsModal()"></button>
+            </div>
+            <textarea id="lyricsModalText" rows="12" readonly></textarea>
+            <div class="alterar-buttons">
+                <button class="btn-alterar-cancel" onclick="closeLyricsModal()">Fechar</button>
+                <button class="btn-alterar-submit" onclick="copyLyrics()">Copiar Letra</button>
+            </div>
+        </div>
+    </div>
+
     <!-- NOVO Config Global -->
     <script src="config.js"></script>
     <script src="form_options.js"></script>
@@ -2101,6 +2130,39 @@
                 .replaceAll("'", '&#039;');
         }
 
+        function normalizeVersionObj(value) {
+            if (!value) return null;
+            if (typeof value === 'string') {
+                try {
+                    return JSON.parse(value);
+                } catch {
+                    return null;
+                }
+            }
+            if (typeof value === 'object') return value;
+            return null;
+        }
+
+        function pickLyricsFromVersion(versionObj, fallback) {
+            if (!versionObj) return fallback || '';
+            return versionObj.customer_lyrics || versionObj.customerlyrics || versionObj.lyrics || fallback || '';
+        }
+
+        function getChosenLyrics(order) {
+            if (!order) return '';
+            const choice = (order.versao_escolhida || order.versao_aprovada_tipo || '').toLowerCase();
+            const originalObj = normalizeVersionObj(order.versao_original);
+            const modifiedObj = normalizeVersionObj(order.versao_modificada);
+
+            if (choice === 'modificada') {
+                return pickLyricsFromVersion(modifiedObj, order.lyrics);
+            }
+            if (choice === 'original') {
+                return pickLyricsFromVersion(originalObj, order.lyrics);
+            }
+            return order.lyrics || pickLyricsFromVersion(originalObj, '');
+        }
+
         function extractSummaryFromPayload(payload) {
             const answers = payload.answers;
             const asked = payload.asked;
@@ -2142,9 +2204,9 @@
                 console.warn('logout error:', e);
             }
             localStorage.removeItem('tuneCraftUser');
-            localStorage.removeItem('tuneCraftpendingOrderId');
-            localStorage.removeItem('tuneCraftcheckoutEmail');
-            localStorage.removeItem('tuneCraftcheckoutName');
+            localStorage.removeItem('tuneCraft_pendingOrderId');
+            localStorage.removeItem('tuneCraft_checkoutEmail');
+            localStorage.removeItem('tuneCraft_checkoutName');
             localStorage.removeItem('tuneCraft_lastDraftId');
             window.location.href = 'login.html';
         }
@@ -2291,7 +2353,9 @@
             if (userData.orders && userData.orders.length > 0) {
                 userData.orders.forEach(order => {
                     const title = escapeHtml(order.title);
-                    const lyrics = escapeHtml(order.lyrics);
+                    const lyricsRaw = getChosenLyrics(order);
+                    const lyrics = escapeHtml(lyricsRaw);
+                    const lyricsEncoded = encodeURIComponent(lyricsRaw || '').replace(/'/g, '%27');
 
                     if (order.status === 'draft') {
                         hasDrafts = true;
@@ -2335,8 +2399,10 @@
                         `;
                     } else if (order.status === 'aguardando_aprovacao' && order.versao_modificada) {
                         hasPending = true;
-                        const versaoOriginal = order.versao_original.customerlyrics;
-                        const versaoModificada = order.versao_modificada;
+                        const versaoOriginal = normalizeVersionObj(order.versao_original);
+                        const versaoModificada = normalizeVersionObj(order.versao_modificada);
+                        const originalLyrics = versaoOriginal?.customer_lyrics || versaoOriginal?.customerlyrics || versaoOriginal?.lyrics || order.lyrics || '';
+                        const modifiedLyrics = versaoModificada?.customer_lyrics || versaoModificada?.customerlyrics || versaoModificada?.lyrics || '';
                         pendingContainer.innerHTML += `
                             <div class="card">
                                 <div class="card-header">
@@ -2344,16 +2410,16 @@
                                     <span class="status-badge status-awaiting">Escolha uma Versão</span>
                                 </div>
                                 <p style="font-size:0.9rem;color:#64748b; margin-bottom: 15px;">Compare as duas versões e escolha sua favorita</p>
-                                ${versaoModificada.changelog ? `<div class="version-changelog"><strong>O que foi alterado</strong><br>${escapeHtml(versaoModificada.changelog)}</div>` : ''}
+                                ${versaoModificada?.changelog ? `<div class="version-changelog"><strong>O que foi alterado</strong><br>${escapeHtml(versaoModificada.changelog)}</div>` : ''}
                                 <div class="comparison-container">
                                     <div class="version-card">
                                         <h4>Versão Original</h4>
-                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(versaoOriginal ?? versaoOriginal.lyrics)}</div>
+                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(originalLyrics)}</div>
                                         <button class="btn btn-select" onclick="aprovarVersao('${order.id}', 'original')">Escolher Esta</button>
                                     </div>
                                     <div class="version-card">
                                         <h4>Versão Modificada</h4>
-                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(versaoModificada.customerlyrics)}</div>
+                                        <div class="lyrics-box" style="max-height: 250px;">${escapeHtml(modifiedLyrics)}</div>
                                         <button class="btn btn-select" onclick="aprovarVersao('${order.id}', 'modificada')">Escolher Esta</button>
                                     </div>
                                 </div>
@@ -2369,7 +2435,7 @@
                                 </div>
                                 <p style="color:#cbd5e1;">Estamos gerando seu áudio. Isso pode levar alguns minutos.</p>
                                 <div class="action-row">
-                                    <button class="btn btn-revise" onclick="openLyricsModal('${lyrics.replaceAll("'", "\\'")}')">Ver letra</button>
+                                    <button class="btn btn-revise" onclick="openLyricsModal(decodeURIComponent('${lyricsEncoded}'))">Ver letra</button>
                                 </div>
                             </div>
                         `;
@@ -2383,7 +2449,7 @@
                                     <span class="status-badge status-completed">Pronta</span>
                                 </div>
                                 <div class="action-row" style="margin-bottom:12px;">
-                                    <button class="btn btn-revise" onclick="openLyricsModal('${lyrics.replaceAll("'", "\\'")}')">Letra</button>
+                                    <button class="btn btn-revise" onclick="openLyricsModal(decodeURIComponent('${lyricsEncoded}'))">Letra</button>
                                 </div>
                                 ${urls.length === 2 ? `
                                 <div style="margin-top:6px;">
@@ -2514,12 +2580,17 @@
 
         async function irParaCheckout(pedidoId) {
             try {
-                localStorage.setItem('tuneCraftpendingOrderId', pedidoId);
-                localStorage.setItem('tuneCraftcheckoutEmail', userData.email);
-                localStorage.setItem('tuneCraftcheckoutName', userData.name);
+                localStorage.setItem('tuneCraft_pendingOrderId', pedidoId);
+                localStorage.setItem('tuneCraft_checkoutEmail', userData.email);
+                localStorage.setItem('tuneCraft_checkoutName', userData.name);
                 console.log('Redirecionando para checkout', pedidoId);
                 showToast('Redirecionando para checkout...', 'info');
-                setTimeout(() => window.location.href = 'checkout.html', 500);
+                const params = new URLSearchParams({
+                    orderId: pedidoId,
+                    email: userData.email || '',
+                    name: userData.name || ''
+                });
+                setTimeout(() => window.location.href = `checkout.html?${params.toString()}`, 500);
             } catch (error) {
                 console.error('Erro ao redirecionar', error);
                 showToast(`Erro: ${error.message}`, 'error');
@@ -2607,7 +2678,7 @@
             const sugestoes = JSON.stringify(structured);
 
             try {
-                const response = await fetch(`${SUPABASE_URL}functions/v1/alterar-letra`, {
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/alterar-letra`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ pedidoId: currentAlterandoId, sugestoes })
@@ -2895,6 +2966,7 @@
     </script>
 </body>
 </html>
+
 
 
 
